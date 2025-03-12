@@ -1,9 +1,8 @@
 from bs4 import BeautifulSoup
+import nodriver as nd
 import sqlite3
 from datetime import datetime
-import nodriver as nd
 import json
-import asyncio
 from dataclasses import dataclass
 import logging
 import sys
