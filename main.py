@@ -1,20 +1,12 @@
-import requests
 from bs4 import BeautifulSoup
-import time
-import re
-from urllib.parse import urljoin
-import random
-from dotenv import load_dotenv
-import os
 import sqlite3
 from datetime import datetime
-from googletrans import Translator
 import nodriver as nd
 import json
-import time
 import asyncio
 from dataclasses import dataclass
-load_dotenv()
+import logging
+import sys
 
 
 @dataclass
@@ -39,6 +31,9 @@ class MotorcycleListing:
         else:
             self.license_rank = exctract_license_rank(self.license_rank)
 
+        if self.model_name is None:
+            self.model_name = "N/A"
+
 
 @dataclass
 class ExctracedPage:
@@ -51,35 +46,44 @@ class ExctracedPage:
 def exctract_license_rank(s: str) -> str:
     if "47" in s:
         return "A1"
+    elif "A2" in s:
+        return "A2"
     else:
         return "A"
 
 
 # Exctracts english variant name from listing dict
 def exctract_english_variant(listing: dict) -> str:
-    s = listing.get('textEng')
-    if s is None:
-        s = listing['text']
-    return s
+    if listing:
+        s = listing.get('textEng')
+        if s is None:
+            s = listing.get('text')
+        return s
+    else:
+        return None
 
 
 # Exctracts all yad2 page data
 async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPage:
-
+    logger = logging.getLogger(__name__)
     url = f"http://www.yad2.co.il/vehicles/motorcycles?page={page_num}"
-    print(f"started scraping page{page_num}")
+    logger.info(f"started scraping page number {page_num}")
+
     # Goes to the given page in Yad2
     tab = await browser.get(url)
-    await tab.sleep(5)
+    await tab.sleep(2)
 
+    # Tries exctracting the json data embedded in the page
     script_element = await tab.query_selector("#__NEXT_DATA__")
-    await tab.sleep(3)
-
-    json_text = await script_element.get_html()
-    await tab
-    print(f"succesfully parsed json data from {page_num}")
+    if script_element is None:  # In case of captcha
+        logger.info("Encountered Captcha")
+        await tab.sleep(60)
+        script_element = await tab.query_selector("#__NEXT_DATA__")
+    await tab.sleep(1)
 
     # Parses and loads needed data into one list with all listings
+    json_text = await script_element.get_html()
+    logger.info(f"succesfully exctracted json data from {page_num}")
     soup = BeautifulSoup(json_text, 'html.parser')
     json_text = soup.find('script', id='__NEXT_DATA__', type='application/json').get_text(strip=True)
     data = json.loads(json_text)
@@ -90,19 +94,6 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
     # For each listing creates a MotorcycleListing dataclass
     all_moto_listings = []
     for listing in all_listings:
-        # Debugging printouts
-        print("listing_id:", listing['adNumber'])
-        print("creation_date:", datetime.fromisoformat(listing['dates']['createdAt']).year)
-        print("location_of_seller:", listing['address']['area']['textEng'])
-        print("brand:", exctract_english_variant(listing['manufacturer']))
-        print("model_name:", exctract_english_variant(listing['model']))
-        print("model_year:", listing['vehicleDates']['yearOfProduction'])
-        print("engine_displacement:", listing['engineVolume'])
-        print("license_rank:", listing['license'].get('text'))
-        print("kilometrage:", listing['km'])
-        print("amount_of_owners:", listing['hand']['id'])
-        print("color:", listing['color']['textEng'])
-        print("listed_price:", listing['price'])
 
         moto_listing = MotorcycleListing(
             listing_id=listing['adNumber'],
@@ -115,18 +106,21 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
             license_rank=listing['license'].get('text'),
             kilometrage=listing['km'],
             amount_of_owners=listing['hand']['id'],
-            color=listing['color']['textEng'],
+            color=exctract_english_variant(listing.get('color')),
             listed_price=listing['price']
         )
-        print(moto_listing)
+        logger.debug(moto_listing)
         all_moto_listings.append(moto_listing)
 
     max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
     exctracted_page = ExctracedPage(page_num=page_num, max_page_available=max_page, listings=all_moto_listings)
+    logger.info(f"Succesfully scraped page number {page_num}")
     return exctracted_page
 
 
+# Inserts a pages data into the db
 def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Connection):
+    logger = logging.getLogger(__name__)
     cursor = connection.cursor()
     query = """
         INSERT INTO motorcycle_listings (
@@ -167,28 +161,59 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
     data = [vars(listing) for listing in exctracted_page.listings]
     try:
         cursor.executemany(query, data)
-    except:
-        print(f"Error inserting data into db for page {exctracted_page.page_num}")
+        logger.info(f"Succesfully inserted listings of page number {exctracted_page.page_num} into db\n")
+    except Exception:
+        logger.exception(f"\nError inserting data into db for page {exctracted_page.page_num}\n")
     connection.commit()
     cursor.close()
 
 
+# Sets up the logging configuration under __name__ logger
+def set_up_logging():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    file_handler = logging.FileHandler("scraper.log", mode="a", encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    logger.info("\n\n\nNEW SCRAPING BATCH")
+
+
 async def main():
+    logger = logging.getLogger(__name__)
     page = 1
     browser = await nd.start()
-
+    await browser.sleep(2)
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
 
     while True:
         exctracted_page = await exctract_page_data(page, browser)
-        if exctracted_page.max_page_available == exctracted_page.page_num:
-            print("Scraped all pages")
-            break
-        print(f"Succesfully scraped page number {page}")
+
         insert_page_into_db(exctracted_page, connection)
-        print(f"Succesfully inserted listings of page number {page} into db")
+        logger.info(f"Succesfully inserted listings of page number {page} into db\n")
+
+        if len(exctracted_page.listings) != 40:
+            logger.warning(f"Page number {page} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
+
+        if exctracted_page.max_page_available == exctracted_page.page_num:
+            logger.info("Finished scraping all pages")
+            break
+
         page += 1
 
 
 if __name__ == "__main__":
+    set_up_logging()
     nd.loop().run_until_complete(main())
