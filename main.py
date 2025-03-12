@@ -126,15 +126,67 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
     return exctracted_page
 
 
+def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Connection):
+    cursor = connection.cursor()
+    query = """
+        INSERT INTO motorcycle_listings (
+            listing_id,
+            creation_date,
+            location_of_seller,
+            brand,
+            model_name,
+            model_year,
+            engine_displacement,
+            license_rank,
+            kilometrage,
+            amount_of_owners,
+            color,
+            listed_price,
+            active,
+            last_seen
+        )
+        VALUES (
+            :listing_id,
+            :creation_date,
+            :location_of_seller,
+            :brand,
+            :model_name,
+            :model_year,
+            :engine_displacement,
+            :license_rank,
+            :kilometrage,
+            :amount_of_owners,
+            :color,
+            :listed_price,
+            :active,
+            date('now')
+        )
+        ON CONFLICT(listing_id) DO UPDATE
+        SET last_seen = date('now');
+        """
+    data = [vars(listing) for listing in exctracted_page.listings]
+    try:
+        cursor.executemany(query, data)
+    except:
+        print(f"Error inserting data into db for page {exctracted_page.page_num}")
+    connection.commit()
+    cursor.close()
+
+
 async def main():
     page = 1
     browser = await nd.start()
+
+    connection = sqlite3.connect("yad2_motorcycles_listings.db")
+
     while True:
         exctracted_page = await exctract_page_data(page, browser)
         if exctracted_page.max_page_available == exctracted_page.page_num:
             print("Scraped all pages")
             break
         print(f"Succesfully scraped page number {page}")
+        insert_page_into_db(exctracted_page, connection)
+        print(f"Succesfully inserted listings of page number {page} into db")
         page += 1
 
 
