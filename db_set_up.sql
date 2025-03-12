@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS motorcycle_listings(
     listing_id INTEGER PRIMARY KEY,
     creation_date DATE NOT NULL,
+    location_of_seller TEXT NOT NULL,
     brand TEXT NOT NULL,
     model_name TEXT NOT NULL,
     model_year INTEGER NOT NULL,
