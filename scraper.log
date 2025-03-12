@@ -1,0 +1,665 @@
+2025-03-13 01:28:30 [INFO] __main__: 
+
+
+NEW SCRAPING BATCH
+2025-03-13 01:28:32 [INFO] __main__: started scraping page number 1
+2025-03-13 01:28:37 [INFO] __main__: succesfully exctracted json data from 1
+2025-03-13 01:28:37 [INFO] __main__: Succesfully scraped page number 1
+2025-03-13 01:28:37 [INFO] __main__: Succesfully inserted listings of page number 1 into db
+
+2025-03-13 01:28:37 [INFO] __main__: Succesfully inserted listings of page number 1 into db
+
+2025-03-13 01:28:37 [INFO] __main__: started scraping page number 2
+2025-03-13 01:28:41 [INFO] __main__: succesfully exctracted json data from 2
+2025-03-13 01:28:41 [INFO] __main__: Succesfully scraped page number 2
+2025-03-13 01:28:41 [INFO] __main__: Succesfully inserted listings of page number 2 into db
+
+2025-03-13 01:28:41 [INFO] __main__: Succesfully inserted listings of page number 2 into db
+
+2025-03-13 01:28:41 [INFO] __main__: started scraping page number 3
+2025-03-13 01:28:45 [INFO] __main__: succesfully exctracted json data from 3
+2025-03-13 01:28:45 [INFO] __main__: Succesfully scraped page number 3
+2025-03-13 01:28:45 [INFO] __main__: Succesfully inserted listings of page number 3 into db
+
+2025-03-13 01:28:45 [INFO] __main__: Succesfully inserted listings of page number 3 into db
+
+2025-03-13 01:28:45 [INFO] __main__: started scraping page number 4
+2025-03-13 01:28:49 [INFO] __main__: succesfully exctracted json data from 4
+2025-03-13 01:28:49 [INFO] __main__: Succesfully scraped page number 4
+2025-03-13 01:28:49 [INFO] __main__: Succesfully inserted listings of page number 4 into db
+
+2025-03-13 01:28:49 [INFO] __main__: Succesfully inserted listings of page number 4 into db
+
+2025-03-13 01:28:49 [INFO] __main__: started scraping page number 5
+2025-03-13 01:28:53 [INFO] __main__: succesfully exctracted json data from 5
+2025-03-13 01:28:53 [INFO] __main__: Succesfully scraped page number 5
+2025-03-13 01:28:53 [INFO] __main__: Succesfully inserted listings of page number 5 into db
+
+2025-03-13 01:28:53 [INFO] __main__: Succesfully inserted listings of page number 5 into db
+
+2025-03-13 01:28:53 [INFO] __main__: started scraping page number 6
+2025-03-13 01:28:57 [INFO] __main__: succesfully exctracted json data from 6
+2025-03-13 01:28:57 [INFO] __main__: Succesfully scraped page number 6
+2025-03-13 01:28:57 [INFO] __main__: Succesfully inserted listings of page number 6 into db
+
+2025-03-13 01:28:57 [INFO] __main__: Succesfully inserted listings of page number 6 into db
+
+2025-03-13 01:28:57 [INFO] __main__: started scraping page number 7
+2025-03-13 01:29:02 [INFO] __main__: succesfully exctracted json data from 7
+2025-03-13 01:29:02 [INFO] __main__: Succesfully scraped page number 7
+2025-03-13 01:29:02 [INFO] __main__: Succesfully inserted listings of page number 7 into db
+
+2025-03-13 01:29:02 [INFO] __main__: Succesfully inserted listings of page number 7 into db
+
+2025-03-13 01:29:02 [INFO] __main__: started scraping page number 8
+2025-03-13 01:29:06 [INFO] __main__: succesfully exctracted json data from 8
+2025-03-13 01:29:06 [INFO] __main__: Succesfully scraped page number 8
+2025-03-13 01:29:06 [INFO] __main__: Succesfully inserted listings of page number 8 into db
+
+2025-03-13 01:29:06 [INFO] __main__: Succesfully inserted listings of page number 8 into db
+
+2025-03-13 01:29:06 [INFO] __main__: started scraping page number 9
+2025-03-13 01:29:09 [INFO] __main__: succesfully exctracted json data from 9
+2025-03-13 01:29:09 [INFO] __main__: Succesfully scraped page number 9
+2025-03-13 01:29:09 [INFO] __main__: Succesfully inserted listings of page number 9 into db
+
+2025-03-13 01:29:09 [INFO] __main__: Succesfully inserted listings of page number 9 into db
+
+2025-03-13 01:29:09 [INFO] __main__: started scraping page number 10
+2025-03-13 01:29:14 [INFO] __main__: succesfully exctracted json data from 10
+2025-03-13 01:29:14 [INFO] __main__: Succesfully scraped page number 10
+2025-03-13 01:29:14 [INFO] __main__: Succesfully inserted listings of page number 10 into db
+
+2025-03-13 01:29:14 [INFO] __main__: Succesfully inserted listings of page number 10 into db
+
+2025-03-13 01:29:14 [INFO] __main__: started scraping page number 11
+2025-03-13 01:29:18 [INFO] __main__: succesfully exctracted json data from 11
+2025-03-13 01:29:18 [INFO] __main__: Succesfully scraped page number 11
+2025-03-13 01:29:18 [INFO] __main__: Succesfully inserted listings of page number 11 into db
+
+2025-03-13 01:29:18 [INFO] __main__: Succesfully inserted listings of page number 11 into db
+
+2025-03-13 01:29:18 [INFO] __main__: started scraping page number 12
+2025-03-13 01:29:22 [INFO] __main__: succesfully exctracted json data from 12
+2025-03-13 01:29:22 [INFO] __main__: Succesfully scraped page number 12
+2025-03-13 01:29:22 [INFO] __main__: Succesfully inserted listings of page number 12 into db
+
+2025-03-13 01:29:22 [INFO] __main__: Succesfully inserted listings of page number 12 into db
+
+2025-03-13 01:29:22 [INFO] __main__: started scraping page number 13
+2025-03-13 01:29:26 [INFO] __main__: succesfully exctracted json data from 13
+2025-03-13 01:29:26 [INFO] __main__: Succesfully scraped page number 13
+2025-03-13 01:29:26 [INFO] __main__: Succesfully inserted listings of page number 13 into db
+
+2025-03-13 01:29:26 [INFO] __main__: Succesfully inserted listings of page number 13 into db
+
+2025-03-13 01:29:26 [INFO] __main__: started scraping page number 14
+2025-03-13 01:29:31 [INFO] __main__: succesfully exctracted json data from 14
+2025-03-13 01:29:31 [INFO] __main__: Succesfully scraped page number 14
+2025-03-13 01:29:31 [INFO] __main__: Succesfully inserted listings of page number 14 into db
+
+2025-03-13 01:29:31 [INFO] __main__: Succesfully inserted listings of page number 14 into db
+
+2025-03-13 01:29:31 [INFO] __main__: started scraping page number 15
+2025-03-13 01:29:35 [INFO] __main__: succesfully exctracted json data from 15
+2025-03-13 01:29:35 [INFO] __main__: Succesfully scraped page number 15
+2025-03-13 01:29:35 [INFO] __main__: Succesfully inserted listings of page number 15 into db
+
+2025-03-13 01:29:35 [INFO] __main__: Succesfully inserted listings of page number 15 into db
+
+2025-03-13 01:29:35 [INFO] __main__: started scraping page number 16
+2025-03-13 01:29:39 [INFO] __main__: succesfully exctracted json data from 16
+2025-03-13 01:29:39 [INFO] __main__: Succesfully scraped page number 16
+2025-03-13 01:29:39 [INFO] __main__: Succesfully inserted listings of page number 16 into db
+
+2025-03-13 01:29:39 [INFO] __main__: Succesfully inserted listings of page number 16 into db
+
+2025-03-13 01:29:39 [INFO] __main__: started scraping page number 17
+2025-03-13 01:29:43 [INFO] __main__: succesfully exctracted json data from 17
+2025-03-13 01:29:43 [INFO] __main__: Succesfully scraped page number 17
+2025-03-13 01:29:43 [INFO] __main__: Succesfully inserted listings of page number 17 into db
+
+2025-03-13 01:29:43 [INFO] __main__: Succesfully inserted listings of page number 17 into db
+
+2025-03-13 01:29:43 [INFO] __main__: started scraping page number 18
+2025-03-13 01:29:47 [INFO] __main__: succesfully exctracted json data from 18
+2025-03-13 01:29:47 [INFO] __main__: Succesfully scraped page number 18
+2025-03-13 01:29:47 [INFO] __main__: Succesfully inserted listings of page number 18 into db
+
+2025-03-13 01:29:47 [INFO] __main__: Succesfully inserted listings of page number 18 into db
+
+2025-03-13 01:29:47 [INFO] __main__: started scraping page number 19
+2025-03-13 01:29:51 [INFO] __main__: succesfully exctracted json data from 19
+2025-03-13 01:29:51 [INFO] __main__: Succesfully scraped page number 19
+2025-03-13 01:29:51 [INFO] __main__: Succesfully inserted listings of page number 19 into db
+
+2025-03-13 01:29:51 [INFO] __main__: Succesfully inserted listings of page number 19 into db
+
+2025-03-13 01:29:51 [INFO] __main__: started scraping page number 20
+2025-03-13 01:29:55 [INFO] __main__: succesfully exctracted json data from 20
+2025-03-13 01:29:55 [INFO] __main__: Succesfully scraped page number 20
+2025-03-13 01:29:55 [INFO] __main__: Succesfully inserted listings of page number 20 into db
+
+2025-03-13 01:29:55 [INFO] __main__: Succesfully inserted listings of page number 20 into db
+
+2025-03-13 01:29:55 [INFO] __main__: started scraping page number 21
+2025-03-13 01:29:59 [INFO] __main__: succesfully exctracted json data from 21
+2025-03-13 01:29:59 [INFO] __main__: Succesfully scraped page number 21
+2025-03-13 01:29:59 [INFO] __main__: Succesfully inserted listings of page number 21 into db
+
+2025-03-13 01:29:59 [INFO] __main__: Succesfully inserted listings of page number 21 into db
+
+2025-03-13 01:29:59 [INFO] __main__: started scraping page number 22
+2025-03-13 01:30:02 [INFO] __main__: Encountered Captcha
+2025-03-13 01:31:04 [INFO] __main__: succesfully exctracted json data from 22
+2025-03-13 01:31:04 [INFO] __main__: Succesfully scraped page number 22
+2025-03-13 01:31:04 [INFO] __main__: Succesfully inserted listings of page number 22 into db
+
+2025-03-13 01:31:04 [INFO] __main__: Succesfully inserted listings of page number 22 into db
+
+2025-03-13 01:31:04 [INFO] __main__: started scraping page number 23
+2025-03-13 01:31:08 [INFO] __main__: succesfully exctracted json data from 23
+2025-03-13 01:31:08 [INFO] __main__: Succesfully scraped page number 23
+2025-03-13 01:31:08 [INFO] __main__: Succesfully inserted listings of page number 23 into db
+
+2025-03-13 01:31:08 [INFO] __main__: Succesfully inserted listings of page number 23 into db
+
+2025-03-13 01:31:08 [INFO] __main__: started scraping page number 24
+2025-03-13 01:31:13 [INFO] __main__: succesfully exctracted json data from 24
+2025-03-13 01:31:13 [INFO] __main__: Succesfully scraped page number 24
+2025-03-13 01:31:13 [INFO] __main__: Succesfully inserted listings of page number 24 into db
+
+2025-03-13 01:31:13 [INFO] __main__: Succesfully inserted listings of page number 24 into db
+
+2025-03-13 01:31:13 [INFO] __main__: started scraping page number 25
+2025-03-13 01:31:17 [INFO] __main__: succesfully exctracted json data from 25
+2025-03-13 01:31:17 [INFO] __main__: Succesfully scraped page number 25
+2025-03-13 01:31:17 [INFO] __main__: Succesfully inserted listings of page number 25 into db
+
+2025-03-13 01:31:17 [INFO] __main__: Succesfully inserted listings of page number 25 into db
+
+2025-03-13 01:31:17 [INFO] __main__: started scraping page number 26
+2025-03-13 01:31:21 [INFO] __main__: succesfully exctracted json data from 26
+2025-03-13 01:31:21 [INFO] __main__: Succesfully scraped page number 26
+2025-03-13 01:31:21 [INFO] __main__: Succesfully inserted listings of page number 26 into db
+
+2025-03-13 01:31:21 [INFO] __main__: Succesfully inserted listings of page number 26 into db
+
+2025-03-13 01:31:21 [INFO] __main__: started scraping page number 27
+2025-03-13 01:31:25 [INFO] __main__: succesfully exctracted json data from 27
+2025-03-13 01:31:25 [INFO] __main__: Succesfully scraped page number 27
+2025-03-13 01:31:25 [INFO] __main__: Succesfully inserted listings of page number 27 into db
+
+2025-03-13 01:31:25 [INFO] __main__: Succesfully inserted listings of page number 27 into db
+
+2025-03-13 01:31:25 [INFO] __main__: started scraping page number 28
+2025-03-13 01:31:30 [INFO] __main__: succesfully exctracted json data from 28
+2025-03-13 01:31:30 [INFO] __main__: Succesfully scraped page number 28
+2025-03-13 01:31:30 [INFO] __main__: Succesfully inserted listings of page number 28 into db
+
+2025-03-13 01:31:30 [INFO] __main__: Succesfully inserted listings of page number 28 into db
+
+2025-03-13 01:31:30 [INFO] __main__: started scraping page number 29
+2025-03-13 01:31:34 [INFO] __main__: succesfully exctracted json data from 29
+2025-03-13 01:31:34 [INFO] __main__: Succesfully scraped page number 29
+2025-03-13 01:31:34 [INFO] __main__: Succesfully inserted listings of page number 29 into db
+
+2025-03-13 01:31:34 [INFO] __main__: Succesfully inserted listings of page number 29 into db
+
+2025-03-13 01:31:34 [INFO] __main__: started scraping page number 30
+2025-03-13 01:31:38 [INFO] __main__: succesfully exctracted json data from 30
+2025-03-13 01:31:38 [INFO] __main__: Succesfully scraped page number 30
+2025-03-13 01:31:38 [INFO] __main__: Succesfully inserted listings of page number 30 into db
+
+2025-03-13 01:31:38 [INFO] __main__: Succesfully inserted listings of page number 30 into db
+
+2025-03-13 01:31:38 [INFO] __main__: started scraping page number 31
+2025-03-13 01:31:42 [INFO] __main__: succesfully exctracted json data from 31
+2025-03-13 01:31:42 [INFO] __main__: Succesfully scraped page number 31
+2025-03-13 01:31:42 [INFO] __main__: Succesfully inserted listings of page number 31 into db
+
+2025-03-13 01:31:42 [INFO] __main__: Succesfully inserted listings of page number 31 into db
+
+2025-03-13 01:31:42 [INFO] __main__: started scraping page number 32
+2025-03-13 01:31:46 [INFO] __main__: succesfully exctracted json data from 32
+2025-03-13 01:31:46 [INFO] __main__: Succesfully scraped page number 32
+2025-03-13 01:31:46 [INFO] __main__: Succesfully inserted listings of page number 32 into db
+
+2025-03-13 01:31:46 [INFO] __main__: Succesfully inserted listings of page number 32 into db
+
+2025-03-13 01:31:46 [INFO] __main__: started scraping page number 33
+2025-03-13 01:31:51 [INFO] __main__: succesfully exctracted json data from 33
+2025-03-13 01:31:51 [INFO] __main__: Succesfully scraped page number 33
+2025-03-13 01:31:51 [INFO] __main__: Succesfully inserted listings of page number 33 into db
+
+2025-03-13 01:31:51 [INFO] __main__: Succesfully inserted listings of page number 33 into db
+
+2025-03-13 01:31:51 [INFO] __main__: started scraping page number 34
+2025-03-13 01:31:55 [INFO] __main__: succesfully exctracted json data from 34
+2025-03-13 01:31:55 [INFO] __main__: Succesfully scraped page number 34
+2025-03-13 01:31:55 [INFO] __main__: Succesfully inserted listings of page number 34 into db
+
+2025-03-13 01:31:55 [INFO] __main__: Succesfully inserted listings of page number 34 into db
+
+2025-03-13 01:31:55 [INFO] __main__: started scraping page number 35
+2025-03-13 01:31:59 [INFO] __main__: succesfully exctracted json data from 35
+2025-03-13 01:31:59 [INFO] __main__: Succesfully scraped page number 35
+2025-03-13 01:31:59 [INFO] __main__: Succesfully inserted listings of page number 35 into db
+
+2025-03-13 01:31:59 [INFO] __main__: Succesfully inserted listings of page number 35 into db
+
+2025-03-13 01:31:59 [INFO] __main__: started scraping page number 36
+2025-03-13 01:32:04 [INFO] __main__: succesfully exctracted json data from 36
+2025-03-13 01:32:04 [INFO] __main__: Succesfully scraped page number 36
+2025-03-13 01:32:04 [INFO] __main__: Succesfully inserted listings of page number 36 into db
+
+2025-03-13 01:32:04 [INFO] __main__: Succesfully inserted listings of page number 36 into db
+
+2025-03-13 01:32:04 [INFO] __main__: started scraping page number 37
+2025-03-13 01:32:08 [INFO] __main__: succesfully exctracted json data from 37
+2025-03-13 01:32:08 [INFO] __main__: Succesfully scraped page number 37
+2025-03-13 01:32:08 [INFO] __main__: Succesfully inserted listings of page number 37 into db
+
+2025-03-13 01:32:08 [INFO] __main__: Succesfully inserted listings of page number 37 into db
+
+2025-03-13 01:32:08 [INFO] __main__: started scraping page number 38
+2025-03-13 01:32:12 [INFO] __main__: succesfully exctracted json data from 38
+2025-03-13 01:32:12 [INFO] __main__: Succesfully scraped page number 38
+2025-03-13 01:32:12 [INFO] __main__: Succesfully inserted listings of page number 38 into db
+
+2025-03-13 01:32:12 [INFO] __main__: Succesfully inserted listings of page number 38 into db
+
+2025-03-13 01:32:12 [INFO] __main__: started scraping page number 39
+2025-03-13 01:32:16 [INFO] __main__: succesfully exctracted json data from 39
+2025-03-13 01:32:16 [INFO] __main__: Succesfully scraped page number 39
+2025-03-13 01:32:16 [INFO] __main__: Succesfully inserted listings of page number 39 into db
+
+2025-03-13 01:32:16 [INFO] __main__: Succesfully inserted listings of page number 39 into db
+
+2025-03-13 01:32:16 [INFO] __main__: started scraping page number 40
+2025-03-13 01:32:20 [INFO] __main__: succesfully exctracted json data from 40
+2025-03-13 01:32:20 [INFO] __main__: Succesfully scraped page number 40
+2025-03-13 01:32:20 [INFO] __main__: Succesfully inserted listings of page number 40 into db
+
+2025-03-13 01:32:20 [INFO] __main__: Succesfully inserted listings of page number 40 into db
+
+2025-03-13 01:32:20 [INFO] __main__: started scraping page number 41
+2025-03-13 01:32:25 [INFO] __main__: succesfully exctracted json data from 41
+2025-03-13 01:32:25 [INFO] __main__: Succesfully scraped page number 41
+2025-03-13 01:32:25 [INFO] __main__: Succesfully inserted listings of page number 41 into db
+
+2025-03-13 01:32:25 [INFO] __main__: Succesfully inserted listings of page number 41 into db
+
+2025-03-13 01:32:25 [INFO] __main__: started scraping page number 42
+2025-03-13 01:32:29 [INFO] __main__: succesfully exctracted json data from 42
+2025-03-13 01:32:29 [INFO] __main__: Succesfully scraped page number 42
+2025-03-13 01:32:29 [INFO] __main__: Succesfully inserted listings of page number 42 into db
+
+2025-03-13 01:32:29 [INFO] __main__: Succesfully inserted listings of page number 42 into db
+
+2025-03-13 01:32:29 [INFO] __main__: started scraping page number 43
+2025-03-13 01:32:33 [INFO] __main__: succesfully exctracted json data from 43
+2025-03-13 01:32:33 [INFO] __main__: Succesfully scraped page number 43
+2025-03-13 01:32:33 [INFO] __main__: Succesfully inserted listings of page number 43 into db
+
+2025-03-13 01:32:33 [INFO] __main__: Succesfully inserted listings of page number 43 into db
+
+2025-03-13 01:32:33 [INFO] __main__: started scraping page number 44
+2025-03-13 01:32:37 [INFO] __main__: succesfully exctracted json data from 44
+2025-03-13 01:32:37 [INFO] __main__: Succesfully scraped page number 44
+2025-03-13 01:32:37 [INFO] __main__: Succesfully inserted listings of page number 44 into db
+
+2025-03-13 01:32:37 [INFO] __main__: Succesfully inserted listings of page number 44 into db
+
+2025-03-13 01:32:37 [INFO] __main__: started scraping page number 45
+2025-03-13 01:32:42 [INFO] __main__: succesfully exctracted json data from 45
+2025-03-13 01:32:42 [INFO] __main__: Succesfully scraped page number 45
+2025-03-13 01:32:42 [INFO] __main__: Succesfully inserted listings of page number 45 into db
+
+2025-03-13 01:32:42 [INFO] __main__: Succesfully inserted listings of page number 45 into db
+
+2025-03-13 01:32:42 [INFO] __main__: started scraping page number 46
+2025-03-13 01:32:46 [INFO] __main__: succesfully exctracted json data from 46
+2025-03-13 01:32:46 [INFO] __main__: Succesfully scraped page number 46
+2025-03-13 01:32:46 [INFO] __main__: Succesfully inserted listings of page number 46 into db
+
+2025-03-13 01:32:46 [INFO] __main__: Succesfully inserted listings of page number 46 into db
+
+2025-03-13 01:32:46 [INFO] __main__: started scraping page number 47
+2025-03-13 01:32:50 [INFO] __main__: succesfully exctracted json data from 47
+2025-03-13 01:32:50 [INFO] __main__: Succesfully scraped page number 47
+2025-03-13 01:32:50 [INFO] __main__: Succesfully inserted listings of page number 47 into db
+
+2025-03-13 01:32:50 [INFO] __main__: Succesfully inserted listings of page number 47 into db
+
+2025-03-13 01:32:50 [INFO] __main__: started scraping page number 48
+2025-03-13 01:32:54 [INFO] __main__: succesfully exctracted json data from 48
+2025-03-13 01:32:54 [INFO] __main__: Succesfully scraped page number 48
+2025-03-13 01:32:54 [INFO] __main__: Succesfully inserted listings of page number 48 into db
+
+2025-03-13 01:32:54 [INFO] __main__: Succesfully inserted listings of page number 48 into db
+
+2025-03-13 01:32:54 [INFO] __main__: started scraping page number 49
+2025-03-13 01:32:58 [INFO] __main__: succesfully exctracted json data from 49
+2025-03-13 01:32:58 [INFO] __main__: Succesfully scraped page number 49
+2025-03-13 01:32:58 [INFO] __main__: Succesfully inserted listings of page number 49 into db
+
+2025-03-13 01:32:58 [INFO] __main__: Succesfully inserted listings of page number 49 into db
+
+2025-03-13 01:32:58 [INFO] __main__: started scraping page number 50
+2025-03-13 01:33:03 [INFO] __main__: succesfully exctracted json data from 50
+2025-03-13 01:33:03 [INFO] __main__: Succesfully scraped page number 50
+2025-03-13 01:33:03 [INFO] __main__: Succesfully inserted listings of page number 50 into db
+
+2025-03-13 01:33:03 [INFO] __main__: Succesfully inserted listings of page number 50 into db
+
+2025-03-13 01:33:03 [INFO] __main__: started scraping page number 51
+2025-03-13 01:33:07 [INFO] __main__: succesfully exctracted json data from 51
+2025-03-13 01:33:07 [INFO] __main__: Succesfully scraped page number 51
+2025-03-13 01:33:07 [INFO] __main__: Succesfully inserted listings of page number 51 into db
+
+2025-03-13 01:33:07 [INFO] __main__: Succesfully inserted listings of page number 51 into db
+
+2025-03-13 01:33:07 [INFO] __main__: started scraping page number 52
+2025-03-13 01:33:12 [INFO] __main__: succesfully exctracted json data from 52
+2025-03-13 01:33:12 [INFO] __main__: Succesfully scraped page number 52
+2025-03-13 01:33:12 [INFO] __main__: Succesfully inserted listings of page number 52 into db
+
+2025-03-13 01:33:12 [INFO] __main__: Succesfully inserted listings of page number 52 into db
+
+2025-03-13 01:33:12 [INFO] __main__: started scraping page number 53
+2025-03-13 01:33:16 [INFO] __main__: succesfully exctracted json data from 53
+2025-03-13 01:33:16 [INFO] __main__: Succesfully scraped page number 53
+2025-03-13 01:33:16 [INFO] __main__: Succesfully inserted listings of page number 53 into db
+
+2025-03-13 01:33:16 [INFO] __main__: Succesfully inserted listings of page number 53 into db
+
+2025-03-13 01:33:16 [INFO] __main__: started scraping page number 54
+2025-03-13 01:33:20 [INFO] __main__: succesfully exctracted json data from 54
+2025-03-13 01:33:20 [INFO] __main__: Succesfully scraped page number 54
+2025-03-13 01:33:20 [INFO] __main__: Succesfully inserted listings of page number 54 into db
+
+2025-03-13 01:33:20 [INFO] __main__: Succesfully inserted listings of page number 54 into db
+
+2025-03-13 01:33:20 [INFO] __main__: started scraping page number 55
+2025-03-13 01:33:24 [INFO] __main__: succesfully exctracted json data from 55
+2025-03-13 01:33:24 [INFO] __main__: Succesfully scraped page number 55
+2025-03-13 01:33:24 [INFO] __main__: Succesfully inserted listings of page number 55 into db
+
+2025-03-13 01:33:24 [INFO] __main__: Succesfully inserted listings of page number 55 into db
+
+2025-03-13 01:33:24 [INFO] __main__: started scraping page number 56
+2025-03-13 01:33:28 [INFO] __main__: succesfully exctracted json data from 56
+2025-03-13 01:33:28 [INFO] __main__: Succesfully scraped page number 56
+2025-03-13 01:33:28 [INFO] __main__: Succesfully inserted listings of page number 56 into db
+
+2025-03-13 01:33:28 [INFO] __main__: Succesfully inserted listings of page number 56 into db
+
+2025-03-13 01:33:28 [INFO] __main__: started scraping page number 57
+2025-03-13 01:33:32 [INFO] __main__: succesfully exctracted json data from 57
+2025-03-13 01:33:32 [INFO] __main__: Succesfully scraped page number 57
+2025-03-13 01:33:32 [INFO] __main__: Succesfully inserted listings of page number 57 into db
+
+2025-03-13 01:33:32 [INFO] __main__: Succesfully inserted listings of page number 57 into db
+
+2025-03-13 01:33:32 [INFO] __main__: started scraping page number 58
+2025-03-13 01:33:36 [INFO] __main__: succesfully exctracted json data from 58
+2025-03-13 01:33:36 [INFO] __main__: Succesfully scraped page number 58
+2025-03-13 01:33:36 [INFO] __main__: Succesfully inserted listings of page number 58 into db
+
+2025-03-13 01:33:36 [INFO] __main__: Succesfully inserted listings of page number 58 into db
+
+2025-03-13 01:33:36 [INFO] __main__: started scraping page number 59
+2025-03-13 01:33:40 [INFO] __main__: succesfully exctracted json data from 59
+2025-03-13 01:33:40 [INFO] __main__: Succesfully scraped page number 59
+2025-03-13 01:33:40 [INFO] __main__: Succesfully inserted listings of page number 59 into db
+
+2025-03-13 01:33:40 [INFO] __main__: Succesfully inserted listings of page number 59 into db
+
+2025-03-13 01:33:40 [INFO] __main__: started scraping page number 60
+2025-03-13 01:33:45 [INFO] __main__: succesfully exctracted json data from 60
+2025-03-13 01:33:45 [INFO] __main__: Succesfully scraped page number 60
+2025-03-13 01:33:45 [INFO] __main__: Succesfully inserted listings of page number 60 into db
+
+2025-03-13 01:33:45 [INFO] __main__: Succesfully inserted listings of page number 60 into db
+
+2025-03-13 01:33:45 [INFO] __main__: started scraping page number 61
+2025-03-13 01:33:49 [INFO] __main__: succesfully exctracted json data from 61
+2025-03-13 01:33:49 [INFO] __main__: Succesfully scraped page number 61
+2025-03-13 01:33:49 [INFO] __main__: Succesfully inserted listings of page number 61 into db
+
+2025-03-13 01:33:49 [INFO] __main__: Succesfully inserted listings of page number 61 into db
+
+2025-03-13 01:33:49 [INFO] __main__: started scraping page number 62
+2025-03-13 01:33:53 [INFO] __main__: succesfully exctracted json data from 62
+2025-03-13 01:33:53 [INFO] __main__: Succesfully scraped page number 62
+2025-03-13 01:33:53 [INFO] __main__: Succesfully inserted listings of page number 62 into db
+
+2025-03-13 01:33:53 [INFO] __main__: Succesfully inserted listings of page number 62 into db
+
+2025-03-13 01:33:53 [INFO] __main__: started scraping page number 63
+2025-03-13 01:33:57 [INFO] __main__: succesfully exctracted json data from 63
+2025-03-13 01:33:57 [INFO] __main__: Succesfully scraped page number 63
+2025-03-13 01:33:57 [INFO] __main__: Succesfully inserted listings of page number 63 into db
+
+2025-03-13 01:33:57 [INFO] __main__: Succesfully inserted listings of page number 63 into db
+
+2025-03-13 01:33:57 [INFO] __main__: started scraping page number 64
+2025-03-13 01:34:02 [INFO] __main__: succesfully exctracted json data from 64
+2025-03-13 01:34:02 [INFO] __main__: Succesfully scraped page number 64
+2025-03-13 01:34:02 [INFO] __main__: Succesfully inserted listings of page number 64 into db
+
+2025-03-13 01:34:02 [INFO] __main__: Succesfully inserted listings of page number 64 into db
+
+2025-03-13 01:34:02 [INFO] __main__: started scraping page number 65
+2025-03-13 01:34:06 [INFO] __main__: succesfully exctracted json data from 65
+2025-03-13 01:34:06 [INFO] __main__: Succesfully scraped page number 65
+2025-03-13 01:34:06 [INFO] __main__: Succesfully inserted listings of page number 65 into db
+
+2025-03-13 01:34:06 [INFO] __main__: Succesfully inserted listings of page number 65 into db
+
+2025-03-13 01:34:06 [INFO] __main__: started scraping page number 66
+2025-03-13 01:34:10 [INFO] __main__: succesfully exctracted json data from 66
+2025-03-13 01:34:10 [INFO] __main__: Succesfully scraped page number 66
+2025-03-13 01:34:10 [INFO] __main__: Succesfully inserted listings of page number 66 into db
+
+2025-03-13 01:34:10 [INFO] __main__: Succesfully inserted listings of page number 66 into db
+
+2025-03-13 01:34:10 [INFO] __main__: started scraping page number 67
+2025-03-13 01:34:14 [INFO] __main__: succesfully exctracted json data from 67
+2025-03-13 01:34:14 [INFO] __main__: Succesfully scraped page number 67
+2025-03-13 01:34:14 [INFO] __main__: Succesfully inserted listings of page number 67 into db
+
+2025-03-13 01:34:14 [INFO] __main__: Succesfully inserted listings of page number 67 into db
+
+2025-03-13 01:34:14 [INFO] __main__: started scraping page number 68
+2025-03-13 01:34:18 [INFO] __main__: succesfully exctracted json data from 68
+2025-03-13 01:34:18 [INFO] __main__: Succesfully scraped page number 68
+2025-03-13 01:34:18 [INFO] __main__: Succesfully inserted listings of page number 68 into db
+
+2025-03-13 01:34:18 [INFO] __main__: Succesfully inserted listings of page number 68 into db
+
+2025-03-13 01:34:18 [INFO] __main__: started scraping page number 69
+2025-03-13 01:34:23 [INFO] __main__: succesfully exctracted json data from 69
+2025-03-13 01:34:23 [INFO] __main__: Succesfully scraped page number 69
+2025-03-13 01:34:23 [INFO] __main__: Succesfully inserted listings of page number 69 into db
+
+2025-03-13 01:34:23 [INFO] __main__: Succesfully inserted listings of page number 69 into db
+
+2025-03-13 01:34:23 [INFO] __main__: started scraping page number 70
+2025-03-13 01:34:27 [INFO] __main__: succesfully exctracted json data from 70
+2025-03-13 01:34:27 [INFO] __main__: Succesfully scraped page number 70
+2025-03-13 01:34:27 [INFO] __main__: Succesfully inserted listings of page number 70 into db
+
+2025-03-13 01:34:27 [INFO] __main__: Succesfully inserted listings of page number 70 into db
+
+2025-03-13 01:34:27 [INFO] __main__: started scraping page number 71
+2025-03-13 01:34:31 [INFO] __main__: succesfully exctracted json data from 71
+2025-03-13 01:34:31 [INFO] __main__: Succesfully scraped page number 71
+2025-03-13 01:34:31 [INFO] __main__: Succesfully inserted listings of page number 71 into db
+
+2025-03-13 01:34:31 [INFO] __main__: Succesfully inserted listings of page number 71 into db
+
+2025-03-13 01:34:31 [INFO] __main__: started scraping page number 72
+2025-03-13 01:34:35 [INFO] __main__: succesfully exctracted json data from 72
+2025-03-13 01:34:35 [INFO] __main__: Succesfully scraped page number 72
+2025-03-13 01:34:35 [INFO] __main__: Succesfully inserted listings of page number 72 into db
+
+2025-03-13 01:34:35 [INFO] __main__: Succesfully inserted listings of page number 72 into db
+
+2025-03-13 01:34:35 [INFO] __main__: started scraping page number 73
+2025-03-13 01:34:39 [INFO] __main__: succesfully exctracted json data from 73
+2025-03-13 01:34:39 [INFO] __main__: Succesfully scraped page number 73
+2025-03-13 01:34:39 [INFO] __main__: Succesfully inserted listings of page number 73 into db
+
+2025-03-13 01:34:39 [INFO] __main__: Succesfully inserted listings of page number 73 into db
+
+2025-03-13 01:34:39 [INFO] __main__: started scraping page number 74
+2025-03-13 01:34:43 [INFO] __main__: succesfully exctracted json data from 74
+2025-03-13 01:34:43 [INFO] __main__: Succesfully scraped page number 74
+2025-03-13 01:34:43 [INFO] __main__: Succesfully inserted listings of page number 74 into db
+
+2025-03-13 01:34:43 [INFO] __main__: Succesfully inserted listings of page number 74 into db
+
+2025-03-13 01:34:43 [INFO] __main__: started scraping page number 75
+2025-03-13 01:34:47 [INFO] __main__: succesfully exctracted json data from 75
+2025-03-13 01:34:47 [INFO] __main__: Succesfully scraped page number 75
+2025-03-13 01:34:47 [INFO] __main__: Succesfully inserted listings of page number 75 into db
+
+2025-03-13 01:34:47 [INFO] __main__: Succesfully inserted listings of page number 75 into db
+
+2025-03-13 01:34:47 [INFO] __main__: started scraping page number 76
+2025-03-13 01:34:51 [INFO] __main__: succesfully exctracted json data from 76
+2025-03-13 01:34:51 [INFO] __main__: Succesfully scraped page number 76
+2025-03-13 01:34:51 [INFO] __main__: Succesfully inserted listings of page number 76 into db
+
+2025-03-13 01:34:51 [INFO] __main__: Succesfully inserted listings of page number 76 into db
+
+2025-03-13 01:34:51 [INFO] __main__: started scraping page number 77
+2025-03-13 01:34:56 [INFO] __main__: succesfully exctracted json data from 77
+2025-03-13 01:34:56 [INFO] __main__: Succesfully scraped page number 77
+2025-03-13 01:34:56 [INFO] __main__: Succesfully inserted listings of page number 77 into db
+
+2025-03-13 01:34:56 [INFO] __main__: Succesfully inserted listings of page number 77 into db
+
+2025-03-13 01:34:56 [INFO] __main__: started scraping page number 78
+2025-03-13 01:35:03 [INFO] __main__: succesfully exctracted json data from 78
+2025-03-13 01:35:03 [INFO] __main__: Succesfully scraped page number 78
+2025-03-13 01:35:03 [INFO] __main__: Succesfully inserted listings of page number 78 into db
+
+2025-03-13 01:35:03 [INFO] __main__: Succesfully inserted listings of page number 78 into db
+
+2025-03-13 01:35:03 [INFO] __main__: started scraping page number 79
+2025-03-13 01:35:07 [INFO] __main__: succesfully exctracted json data from 79
+2025-03-13 01:35:07 [INFO] __main__: Succesfully scraped page number 79
+2025-03-13 01:35:07 [INFO] __main__: Succesfully inserted listings of page number 79 into db
+
+2025-03-13 01:35:08 [INFO] __main__: Succesfully inserted listings of page number 79 into db
+
+2025-03-13 01:35:08 [INFO] __main__: started scraping page number 80
+2025-03-13 01:35:12 [INFO] __main__: succesfully exctracted json data from 80
+2025-03-13 01:35:12 [INFO] __main__: Succesfully scraped page number 80
+2025-03-13 01:35:12 [INFO] __main__: Succesfully inserted listings of page number 80 into db
+
+2025-03-13 01:35:12 [INFO] __main__: Succesfully inserted listings of page number 80 into db
+
+2025-03-13 01:35:12 [INFO] __main__: started scraping page number 81
+2025-03-13 01:35:16 [INFO] __main__: succesfully exctracted json data from 81
+2025-03-13 01:35:16 [INFO] __main__: Succesfully scraped page number 81
+2025-03-13 01:35:16 [INFO] __main__: Succesfully inserted listings of page number 81 into db
+
+2025-03-13 01:35:16 [INFO] __main__: Succesfully inserted listings of page number 81 into db
+
+2025-03-13 01:35:16 [INFO] __main__: started scraping page number 82
+2025-03-13 01:35:20 [INFO] __main__: succesfully exctracted json data from 82
+2025-03-13 01:35:20 [INFO] __main__: Succesfully scraped page number 82
+2025-03-13 01:35:20 [INFO] __main__: Succesfully inserted listings of page number 82 into db
+
+2025-03-13 01:35:20 [INFO] __main__: Succesfully inserted listings of page number 82 into db
+
+2025-03-13 01:35:20 [INFO] __main__: started scraping page number 83
+2025-03-13 01:35:25 [INFO] __main__: succesfully exctracted json data from 83
+2025-03-13 01:35:25 [INFO] __main__: Succesfully scraped page number 83
+2025-03-13 01:35:25 [INFO] __main__: Succesfully inserted listings of page number 83 into db
+
+2025-03-13 01:35:25 [INFO] __main__: Succesfully inserted listings of page number 83 into db
+
+2025-03-13 01:35:25 [INFO] __main__: started scraping page number 84
+2025-03-13 01:35:29 [INFO] __main__: succesfully exctracted json data from 84
+2025-03-13 01:35:29 [INFO] __main__: Succesfully scraped page number 84
+2025-03-13 01:35:29 [INFO] __main__: Succesfully inserted listings of page number 84 into db
+
+2025-03-13 01:35:29 [INFO] __main__: Succesfully inserted listings of page number 84 into db
+
+2025-03-13 01:35:29 [INFO] __main__: started scraping page number 85
+2025-03-13 01:35:33 [INFO] __main__: succesfully exctracted json data from 85
+2025-03-13 01:35:33 [INFO] __main__: Succesfully scraped page number 85
+2025-03-13 01:35:33 [INFO] __main__: Succesfully inserted listings of page number 85 into db
+
+2025-03-13 01:35:33 [INFO] __main__: Succesfully inserted listings of page number 85 into db
+
+2025-03-13 01:35:33 [INFO] __main__: started scraping page number 86
+2025-03-13 01:35:37 [INFO] __main__: succesfully exctracted json data from 86
+2025-03-13 01:35:37 [INFO] __main__: Succesfully scraped page number 86
+2025-03-13 01:35:37 [INFO] __main__: Succesfully inserted listings of page number 86 into db
+
+2025-03-13 01:35:37 [INFO] __main__: Succesfully inserted listings of page number 86 into db
+
+2025-03-13 01:35:37 [INFO] __main__: started scraping page number 87
+2025-03-13 01:35:42 [INFO] __main__: succesfully exctracted json data from 87
+2025-03-13 01:35:42 [INFO] __main__: Succesfully scraped page number 87
+2025-03-13 01:35:42 [INFO] __main__: Succesfully inserted listings of page number 87 into db
+
+2025-03-13 01:35:42 [INFO] __main__: Succesfully inserted listings of page number 87 into db
+
+2025-03-13 01:35:42 [INFO] __main__: started scraping page number 88
+2025-03-13 01:35:46 [INFO] __main__: succesfully exctracted json data from 88
+2025-03-13 01:35:46 [INFO] __main__: Succesfully scraped page number 88
+2025-03-13 01:35:46 [INFO] __main__: Succesfully inserted listings of page number 88 into db
+
+2025-03-13 01:35:46 [INFO] __main__: Succesfully inserted listings of page number 88 into db
+
+2025-03-13 01:35:46 [INFO] __main__: started scraping page number 89
+2025-03-13 01:35:50 [INFO] __main__: succesfully exctracted json data from 89
+2025-03-13 01:35:50 [INFO] __main__: Succesfully scraped page number 89
+2025-03-13 01:35:50 [INFO] __main__: Succesfully inserted listings of page number 89 into db
+
+2025-03-13 01:35:50 [INFO] __main__: Succesfully inserted listings of page number 89 into db
+
+2025-03-13 01:35:50 [INFO] __main__: started scraping page number 90
+2025-03-13 01:35:55 [INFO] __main__: succesfully exctracted json data from 90
+2025-03-13 01:35:55 [INFO] __main__: Succesfully scraped page number 90
+2025-03-13 01:35:55 [INFO] __main__: Succesfully inserted listings of page number 90 into db
+
+2025-03-13 01:35:55 [INFO] __main__: Succesfully inserted listings of page number 90 into db
+
+2025-03-13 01:35:55 [INFO] __main__: started scraping page number 91
+2025-03-13 01:35:59 [INFO] __main__: succesfully exctracted json data from 91
+2025-03-13 01:35:59 [INFO] __main__: Succesfully scraped page number 91
+2025-03-13 01:35:59 [INFO] __main__: Succesfully inserted listings of page number 91 into db
+
+2025-03-13 01:35:59 [INFO] __main__: Succesfully inserted listings of page number 91 into db
+
+2025-03-13 01:35:59 [INFO] __main__: started scraping page number 92
+2025-03-13 01:36:03 [INFO] __main__: succesfully exctracted json data from 92
+2025-03-13 01:36:03 [INFO] __main__: Succesfully scraped page number 92
+2025-03-13 01:36:03 [INFO] __main__: Succesfully inserted listings of page number 92 into db
+
+2025-03-13 01:36:03 [INFO] __main__: Succesfully inserted listings of page number 92 into db
+
+2025-03-13 01:36:03 [INFO] __main__: started scraping page number 93
+2025-03-13 01:36:07 [INFO] __main__: succesfully exctracted json data from 93
+2025-03-13 01:36:07 [INFO] __main__: Succesfully scraped page number 93
+2025-03-13 01:36:07 [INFO] __main__: Succesfully inserted listings of page number 93 into db
+
+2025-03-13 01:36:07 [INFO] __main__: Succesfully inserted listings of page number 93 into db
+
+2025-03-13 01:36:07 [INFO] __main__: started scraping page number 94
+2025-03-13 01:36:11 [INFO] __main__: succesfully exctracted json data from 94
+2025-03-13 01:36:11 [INFO] __main__: Succesfully scraped page number 94
+2025-03-13 01:36:11 [INFO] __main__: Succesfully inserted listings of page number 94 into db
+
+2025-03-13 01:36:11 [INFO] __main__: Succesfully inserted listings of page number 94 into db
+
+2025-03-13 01:36:11 [WARNING] __main__: Page number 94 or 94 contained less then 40 entries but 38
+2025-03-13 01:36:11 [INFO] __main__: Finished scraping all pages
