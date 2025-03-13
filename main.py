@@ -199,9 +199,7 @@ async def main():
 
     while True:
         exctracted_page = await exctract_page_data(page, browser)
-
         insert_page_into_db(exctracted_page, connection)
-        logger.info(f"Succesfully inserted listings of page number {page} into db\n")
 
         if len(exctracted_page.listings) != 40:
             logger.warning(f"Page number {page} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
