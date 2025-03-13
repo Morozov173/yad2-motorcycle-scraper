@@ -6,6 +6,8 @@ import json
 from dataclasses import dataclass
 import logging
 import sys
+from pathlib import Path
+import asyncio
 
 
 @dataclass
@@ -47,6 +49,12 @@ class ExctracedPage:
     page_num: int
     max_page_available: int
     listings: list[MotorcycleListing]
+
+    def is_last(self) -> bool:
+        if self.max_page_available == self.page_num:
+            return True
+        else:
+            return False
 
 
 def exctract_license_rank(s: str) -> str:
@@ -93,16 +101,30 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
 
     # Open the specified URL in a new browser tab.
     tab = await browser.get(url)
-    await tab.sleep(2)
+    await tab.sleep(0.5)
 
     # Attempt to locate the script element containing JSON data.
     script_element = await tab.query_selector("#__NEXT_DATA__")
+
     # Likely due to a CAPTCHA.
-    if script_element is None:
+    while script_element is None:
         logger.info("Encountered Captcha")
-        await tab.sleep(60)
+        await tab.sleep(2)
+        try:
+            logger.info("Waiting for captcha to be solved...")
+            await tab.wait_for(
+                selector='iframe[data-hcaptcha-widget-id]:not([data-hcaptcha-response=""])',
+                timeout=60000
+            )
+            await tab.sleep(7)
+            logger.info("CAPTCHA Solved - continuing scraping")
+
+        except asyncio.TimeoutError:
+            logger.warning("Waiting for solving timedout")
+
         script_element = await tab.query_selector("#__NEXT_DATA__")
-    await tab.sleep(1)
+
+    await tab.sleep(0.1)
 
     # Extract the HTML from the script element.
     json_text = await script_element.get_html()
@@ -203,6 +225,12 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
     cursor.close()
 
 
+def update_last_scrape_date():
+    with open("last_scrape_date.txt", "w") as f:
+        current_date = datetime.now().date().isoformat()
+        f.write(current_date)
+
+
 def set_up_logging():
     """
     Configure logging to output to both the console and a log file.
@@ -242,22 +270,35 @@ async def main():
     """
     logger = logging.getLogger(__name__)
     page = 1
-    browser = await nd.start()
+
+    captcha_solver_extension_path = r"D:\Programming\Captcha Solver Extension\solver"
+    captcha_solver_pop_up_path = r"chrome-extension://hlifkpholllijblknnmbfagnkjneagid/popup/popup.html"
+
+    config = nd.Config()
+    config.add_extension(captcha_solver_extension_path)
+
+    browser = await nd.start(config=config)
     await browser.sleep(2)
+    # temp_tab = await browser.get(captcha_solver_pop_up_path)
+    # await browser.sleep(2)
+
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
 
     # Loop through pages until all pages are scraped.
     while True:
+
         exctracted_page = await exctract_page_data(page, browser)
         insert_page_into_db(exctracted_page, connection)
 
         # Warn if the number of listings is not as expected.
-        if len(exctracted_page.listings) < 40 and exctracted_page.max_page_available != exctracted_page.page_num:
+        if exctracted_page.is_last() and len(exctracted_page.listings) < 40:
             logger.warning(f"Page number {page} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
 
         # Stop the loop if the current page is the last page.
         if exctracted_page.max_page_available == exctracted_page.page_num:
             logger.info("Finished scraping all pages")
+            update_last_scrape_date()
+            logger.info("Updated last_scrape_date file succesfully.")
             break
 
         page += 1
