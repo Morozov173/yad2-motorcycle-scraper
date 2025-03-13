@@ -10,6 +10,7 @@ import sys
 
 @dataclass
 class MotorcycleListing:
+    """Data class representing a motorcycle listing."""
     listing_id: int
     creation_date: str
     location_of_seller: str
@@ -25,6 +26,12 @@ class MotorcycleListing:
     active: bool = True
 
     def __post_init__(self):
+        """
+        Post-initialization to adjust default values.
+
+        - If license_rank is None, it is determined based on engine displacement.
+        - If model_name is None, it is set to "N/A".
+        """
         if self.license_rank is None:
             self.license_rank = 'A' if self.engine_displacement > 500 else 'A1'
         else:
@@ -36,13 +43,14 @@ class MotorcycleListing:
 
 @dataclass
 class ExctracedPage:
+    """Data class representing the data extracted from a single page."""
     page_num: int
     max_page_available: int
     listings: list[MotorcycleListing]
 
 
-# Exctracts the license rank from string
 def exctract_license_rank(s: str) -> str:
+    """Determine the simplified license rank from the provided string."""
     if "47" in s:
         return "A1"
     elif "A2" in s:
@@ -51,8 +59,8 @@ def exctract_license_rank(s: str) -> str:
         return "A"
 
 
-# Exctracts english variant name from listing dict
 def exctract_english_variant(listing: dict) -> str:
+    """Extracts the English variant name from a listing dictionary"""
     if listing:
         s = listing.get('textEng')
         if s is None:
@@ -62,38 +70,57 @@ def exctract_english_variant(listing: dict) -> str:
         return None
 
 
-# Exctracts all yad2 page data
 async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPage:
+    """
+    Scrape and extract data from a given Yad2 page.
+
+    The function performs the following steps:
+      1. Construct the URL for the desired page.
+      2. Navigate to the URL using the provided browser.
+      3. Handle potential captchas by waiting if needed.
+      4. Extract the JSON data embedded in the page.
+      5. Parse and combine commercial and private listings.
+      6. Convert each raw listing into a MotorcycleListing instance.
+      7. Retrieve pagination info.
+
+        Returns:
+        ExctracedPage: An object containing the page number, maximum pages available,
+                      and the list of motorcycle listings extracted from the page.
+    """
     logger = logging.getLogger(__name__)
     url = f"http://www.yad2.co.il/vehicles/motorcycles?page={page_num}"
     logger.info(f"started scraping page number {page_num}")
 
-    # Goes to the given page in Yad2
+    # Open the specified URL in a new browser tab.
     tab = await browser.get(url)
     await tab.sleep(2)
 
-    # Tries exctracting the json data embedded in the page
+    # Attempt to locate the script element containing JSON data.
     script_element = await tab.query_selector("#__NEXT_DATA__")
-    if script_element is None:  # In case of captcha
+    # Likely due to a CAPTCHA.
+    if script_element is None:
         logger.info("Encountered Captcha")
         await tab.sleep(60)
         script_element = await tab.query_selector("#__NEXT_DATA__")
     await tab.sleep(1)
 
-    # Parses and loads needed data into one list with all listings
+    # Extract the HTML from the script element.
     json_text = await script_element.get_html()
     logger.info(f"succesfully exctracted json data from {page_num}")
+
+    # Parse the JSON text using BeautifulSoup and json.loads.
     soup = BeautifulSoup(json_text, 'html.parser')
     json_text = soup.find('script', id='__NEXT_DATA__', type='application/json').get_text(strip=True)
     data = json.loads(json_text)
+
+    # Combine commercial and private listings.
     commercial_listings = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["commercial"]
     private_listings = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["private"]
     all_listings = commercial_listings + private_listings
 
-    # For each listing creates a MotorcycleListing dataclass
+    # Convert each listing to a MotorcycleListing instance.
     all_moto_listings = []
     for listing in all_listings:
-
         moto_listing = MotorcycleListing(
             listing_id=listing['adNumber'],
             creation_date=datetime.fromisoformat(listing['dates']['createdAt']).year,
@@ -111,14 +138,21 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
         logger.debug(moto_listing)
         all_moto_listings.append(moto_listing)
 
+    # Get the maximum number of pages available from pagination data.
     max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
     exctracted_page = ExctracedPage(page_num=page_num, max_page_available=max_page, listings=all_moto_listings)
     logger.info(f"Succesfully scraped page number {page_num}")
     return exctracted_page
 
 
-# Inserts a pages data into the db
 def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Connection):
+    """
+    Insert the listings from an extracted page into the SQLite database.
+
+    This function uses an UPSERT query:
+      - Inserts a new row if the listing does not exist.
+      - Updates the last_seen field if the listing_id already exists.
+    """
     logger = logging.getLogger(__name__)
     cursor = connection.cursor()
     query = """
@@ -157,6 +191,8 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
         ON CONFLICT(listing_id) DO UPDATE
         SET last_seen = date('now');
         """
+
+    # Convert the list of MotorcycleListing objects into a list of dictionaries
     data = [vars(listing) for listing in exctracted_page.listings]
     try:
         cursor.executemany(query, data)
@@ -167,8 +203,12 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
     cursor.close()
 
 
-# Sets up the logging configuration under __name__ logger
 def set_up_logging():
+    """
+    Configure logging to output to both the console and a log file.
+
+    Logs are output with a timestamp, log level, and logger name.
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
 
@@ -177,33 +217,45 @@ def set_up_logging():
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
+    # Create a console handler for output to stdout.
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
 
+    # Create a file handler for logging to a file
     file_handler = logging.FileHandler("scraper.log", mode="a", encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
 
+    # Add both handlers to the logger.
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.info("\n\n\nNEW SCRAPING BATCH")
 
 
 async def main():
+    """
+    Main function to drive the scraping process.
+
+    This function initializes the browser and database connection,
+    then iterates through pages to scrape listings until the last page is reached.
+    """
     logger = logging.getLogger(__name__)
     page = 1
     browser = await nd.start()
     await browser.sleep(2)
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
 
+    # Loop through pages until all pages are scraped.
     while True:
         exctracted_page = await exctract_page_data(page, browser)
         insert_page_into_db(exctracted_page, connection)
 
-        if len(exctracted_page.listings) != 40:
+        # Warn if the number of listings is not as expected.
+        if len(exctracted_page.listings) < 40 and exctracted_page.max_page_available != exctracted_page.page_num:
             logger.warning(f"Page number {page} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
 
+        # Stop the loop if the current page is the last page.
         if exctracted_page.max_page_available == exctracted_page.page_num:
             logger.info("Finished scraping all pages")
             break
@@ -212,5 +264,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    set_up_logging()
-    nd.loop().run_until_complete(main())
+    set_up_logging()  # Initialize logging for the application.
+    nd.loop().run_until_complete(main())  # Run the main asynchronous function.
