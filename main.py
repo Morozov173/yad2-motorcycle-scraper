@@ -179,7 +179,7 @@ async def exctract_initial_data(scrape_metadata: ScrapeMetadata) -> tuple[str, i
 
     max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
 
-    logger.info(f"Successfully finished exctracting build id: {build_id} and the amount of pages {max_page}\n\n")
+    logger.info(f"Successfully finished exctracting initial data. Build ID: {build_id} Amount of pages to scrape: {max_page}\n")
     return build_id, max_page
 
 
@@ -434,7 +434,7 @@ def main():
     # Loop through pages until the scraping process is complete.
     while True:
         # Wait for a random period between 1 and 120 seconds before each request,
-        wait_for = random.uniform(1, 8)
+        wait_for = random.uniform(1, 120)
         logger.debug(f"Sleeping for: {wait_for} seconds")
         time.sleep(wait_for)
 
@@ -453,7 +453,7 @@ def main():
             logger.info(f"Successfully finished scraping all {exctracted_page.page_num} pages")
             scrape_metadata.last_successful_scrape_date = scrape_metadata.last_scrape_date
             scrape_metadata.update()
-            logger.info("Successfully updated the metadata file .")
+            logger.info("Successfully updated the metadata file.")
             break
 
         page_num += 1
