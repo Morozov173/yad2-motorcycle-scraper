@@ -1,13 +1,20 @@
 from bs4 import BeautifulSoup
 import nodriver as nd
+import curl_cffi
 import sqlite3
-from datetime import datetime
 import json
-from dataclasses import dataclass
 import logging
 import sys
-from pathlib import Path
 import asyncio
+import time
+import os
+import random
+from datetime import datetime
+from dataclasses import dataclass, field
+from dotenv import load_dotenv
+
+load_dotenv()
+PROXY_IL = os.getenv("PROXY_IL")
 
 
 @dataclass
@@ -57,6 +64,51 @@ class ExctracedPage:
             return False
 
 
+@dataclass
+class ScrapeMetadata:
+    """
+    Manages scraping metadata by loading from and updating a JSON file.
+
+    Attributes:
+        last_scrape_date: Date when the scrape was initiated (ISO format).
+        last_successful_scrape_date: Date of the last successful scrape.
+        build_id: Build identifier from the previous scrape.
+        json_path: File path for the metadata JSON (not shown in repr).
+    """
+    last_scrape_date: str = datetime.now().date().isoformat()
+    last_successful_scrape_date: str = ""
+    build_id: str = ""
+    json_path: str = field(default="scrape_metadata.json", repr=False)
+
+    def __post_init__(self):
+        """
+        Loads existing metadata from the JSON file, updates the last_scrape_date,
+        and initializes instance variables with loaded values.
+        """
+        with open(self.json_path, "r+") as json_file:
+            data = json.load(json_file)
+            # Update the last scrape date to the current value
+            data["last_scrape_date"] = self.last_scrape_date
+            # Rewind file pointer and overwrite with updated data
+            json_file.seek(0)
+            json.dump(data, json_file, indent=4)
+            json_file.truncate()
+
+        # Set instance variables from the file
+        self.last_successful_scrape_date = data["last_successful_scrape_date"]
+        self.build_id = data["last_exctracted_build_id"]
+
+    def update(self):
+        """ Writes the current metadata back to the JSON file. """
+        data = {
+            "last_scrape_date": self.last_scrape_date,
+            "last_successful_scrape_date": self.last_successful_scrape_date,
+            "last_exctracted_build_id": self.build_id
+        }
+        with open(self.json_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+
+
 def exctract_license_rank(s: str) -> str:
     """Determine the simplified license rank from the provided string."""
     if "47" in s:
@@ -78,74 +130,174 @@ def exctract_english_variant(listing: dict) -> str:
         return None
 
 
-async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPage:
+async def exctract_initial_data(scrape_metadata: ScrapeMetadata) -> tuple[str, int]:
     """
-    Scrape and extract data from a given Yad2 page.
+    Launches a browser session to extract the build ID and the maximum number of pages from the target site.
 
     The function performs the following steps:
-      1. Construct the URL for the desired page.
-      2. Navigate to the URL using the provided browser.
-      3. Handle potential captchas by waiting if needed.
-      4. Extract the JSON data embedded in the page.
-      5. Parse and combine commercial and private listings.
-      6. Convert each raw listing into a MotorcycleListing instance.
-      7. Retrieve pagination info.
+      1. Opens the specified URL.
+      2. Waits for the page to load.
+      3. Retrieves the script element containing JSON data.
+      4. Parses the JSON to extract the build ID and pagination information.
+      5. Closes the browser session.
 
-        Returns:
-        ExctracedPage: An object containing the page number, maximum pages available,
-                      and the list of motorcycle listings extracted from the page.
+    Returns:
+        tuple[str, int]: A tuple containing the build ID (str) and the maximum number of pages (int).
     """
+
     logger = logging.getLogger(__name__)
-    url = f"http://www.yad2.co.il/vehicles/motorcycles?page={page_num}"
-    logger.info(f"started scraping page number {page_num}")
+    url = "https://www.yad2.co.il/vehicles/motorcycles"
+    logger.info(f"Trying to exctract build id")
 
-    # Open the specified URL in a new browser tab.
+    # Start the browser (headless by default or as configured)
+    browser = await nd.start()
+    await browser.sleep(5)
+
+    # Open the URL in a new tab
     tab = await browser.get(url)
-    await tab.sleep(0.5)
+    await tab.sleep(5)
 
-    # Attempt to locate the script element containing JSON data.
+    # Locate the script element that holds the JSON data
     script_element = await tab.query_selector("#__NEXT_DATA__")
-
-    # Likely due to a CAPTCHA.
-    while script_element is None:
-        logger.info("Encountered Captcha")
-        await tab.sleep(2)
-        try:
-            logger.info("Waiting for captcha to be solved...")
-            await tab.wait_for(
-                selector='iframe[data-hcaptcha-widget-id]:not([data-hcaptcha-response=""])',
-                timeout=60000
-            )
-            await tab.sleep(7)
-            logger.info("CAPTCHA Solved - continuing scraping")
-
-        except asyncio.TimeoutError:
-            logger.warning("Waiting for solving timedout")
-
-        script_element = await tab.query_selector("#__NEXT_DATA__")
-
-    await tab.sleep(0.1)
-
-    # Extract the HTML from the script element.
+    await tab.sleep(2)
     json_text = await script_element.get_html()
-    logger.info(f"succesfully exctracted json data from {page_num}")
 
-    # Parse the JSON text using BeautifulSoup and json.loads.
-    soup = BeautifulSoup(json_text, 'html.parser')
-    json_text = soup.find('script', id='__NEXT_DATA__', type='application/json').get_text(strip=True)
+    # Stop the browser after extraction
+    browser.stop()
+
+    # Parse the HTML containing the JSON data using BeautifulSoup
+    soup = BeautifulSoup(json_text, "html.parser")
+    json_text = soup.find('script', id="__NEXT_DATA__", type="application/json").get_text(strip=True)
+
     data = json.loads(json_text)
 
+    # If new build_id was detected
+    build_id = data["buildId"]
+    if scrape_metadata.build_id != build_id:
+        logger.critical(f"New build id detected and updated. previus build id: {scrape_metadata.build_id} new build id: {build_id}")
+        scrape_metadata.build_id = build_id
+
+    max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
+
+    logger.info(f"Successfully finished exctracting build id: {build_id} and the amount of pages {max_page}\n\n")
+    return build_id, max_page
+
+
+def create_referer_header(page_num: int, max_page: int) -> dict[str:str]:
+    """
+    Generates a Referer header to simulate natural user navigation.
+
+    Although not strictly necessary for a successful request, adding a randomized
+    Referer header can help the requests appear more natural upon close inspection.
+
+    For page number 1, the referer page is randomly chosen from 1 to 27.
+    For other pages, it is chosen from a range of values near the current page, but not equal to it.
+
+    Args:
+        page_num (int): The current page number.
+        max_page (int): The maximum available page number.
+
+    Returns:
+        dict[str, str]: A dictionary containing the Referer header.
+    """
+    if page_num == 1:
+        # For page 1, choose any number between 1 and 27 (inclusive)
+        candidates = range(2, 28)
+    else:
+        # For other pages, select a range near the current page, ensuring values are within bounds and not equal to page_num.
+        lower = max(1, page_num-3)
+        upper = min(max_page, page_num+3)
+        candidates = [number for number in range(lower, upper+1) if number != page_num]
+
+    # Build and return the Referer header
+    return {"Referer": f"https://www.yad2.co.il/vehicles/motorcycles?page={random.choice(candidates)}"}
+
+
+def is_json(s: str) -> bool:
+    """Check if the given string is valid JSON."""
+    try:
+        json.loads(s)
+    except ValueError:
+        return False
+    return True
+
+
+def exctract_page_data(page_num: int, build_id: str, max_page: int) -> ExctracedPage:
+    """
+    Scrapes data from a given page number using the build id and extracts motorcycle listings.
+
+    The function makes repeated GET requests (up to a maximum number of attempts) to retrieve JSON data.
+    It logs the status code and a snippet of the response, waits between attempts if the request fails,
+    and ultimately parses the response JSON to extract both commercial and private listings.
+
+    Args:
+        page_num (int): The page number to scrape.
+        build_id (str): The build ID required to construct the URL.
+        max_page (int): The maximum number of pages available (used for header generation).
+
+    Returns:
+        ExctracedPage: An object containing the scraped page data.
+    """
+    logger = logging.getLogger(__name__)
+    logger.info(f"Started scraping page number {page_num}")
+
+    # Construct the URL for the JSON data endpoint
+    url = f"https://www.yad2.co.il/vehicles/_next/data/{build_id}/motorcycles.json?page={page_num}"
+
+    attempts = 0
+    max_attempts = 10
+    proxies = {
+        "http": PROXY_IL,
+        "https": PROXY_IL
+    }
+
+    # Try up to max_attempts times to get a valid response (HTTP 200)
+    while attempts < max_attempts:
+        try:
+            response = curl_cffi.get(url=url, impersonate="chrome", headers=create_referer_header(page_num, max_page), proxies=proxies, timeout=60)
+        except:
+            logger.exception(f"Couldn't complete GET reuquest from target.")
+            logger.info("Trying again")
+            attempts += 1
+            time.sleep(5)
+            continue
+
+        logger.debug(f"Recieved response. Status code is: {response.status_code}")
+        if response.status_code != 200:
+            logger.warning("Didn't recieve 200 response from server; Sleeping for 5-10 minutes and trying again.")
+            time.sleep(random.uniform(300, 600))
+            attempts += 1
+            continue
+        elif not is_json(response.text):
+            logger.warning("Recieved status code 200 but the data wasn't a JSON file.")
+            logger.info(f"First 100 characters of the data recieved:{response.text[0:100]}")
+            time.sleep(random.uniform(30, 60))
+            attempts += 1
+            continue
+        else:
+            logger.debug("Proper JSON file recieved")
+            break
+
+    # Exit if max attempts reached without success
+    if attempts == max_attempts:
+        logger.critical(f"Scraping failed at page: {page_num} after {attempts} attempts.")
+        sys.exit(1)
+
+    # Parse JSON response data
+    data = response.json()
+    response.close()  # Close the response to free resources
+
     # Combine commercial and private listings.
-    commercial_listings = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["commercial"]
-    private_listings = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["private"]
+    commercial_listings = data["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["commercial"]
+    private_listings = data["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["private"]
     all_listings = commercial_listings + private_listings
 
-    # Convert each listing to a MotorcycleListing instance.
+    # Process each listing and convert to a MotorcycleListing instance
     all_moto_listings = []
     for listing in all_listings:
         moto_listing = MotorcycleListing(
             listing_id=listing['adNumber'],
-            creation_date=datetime.fromisoformat(listing['dates']['createdAt']).year,
+            creation_date=str(datetime.fromisoformat(listing['dates']['createdAt']).date()),
             location_of_seller=listing['address']['area']['textEng'],
             brand=exctract_english_variant(listing['manufacturer']),
             model_name=exctract_english_variant(listing['model']),
@@ -157,13 +309,20 @@ async def exctract_page_data(page_num: int, browser: nd.Browser) -> ExctracedPag
             color=exctract_english_variant(listing.get('color')),
             listed_price=listing['price']
         )
-        logger.debug(moto_listing)
+        # logger.debug(moto_listing)
         all_moto_listings.append(moto_listing)
 
-    # Get the maximum number of pages available from pagination data.
-    max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
-    exctracted_page = ExctracedPage(page_num=page_num, max_page_available=max_page, listings=all_moto_listings)
-    logger.info(f"Succesfully scraped page number {page_num}")
+    # Update max_page in case it changed in the response data
+    max_page = data["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
+
+    # Construct the ExctracedPage object with all listings
+    exctracted_page = ExctracedPage(
+        page_num=page_num,
+        max_page_available=max_page,
+        listings=all_moto_listings
+    )
+
+    logger.info(f"Successfully finished scraping page number {page_num}")
     return exctracted_page
 
 
@@ -218,27 +377,21 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
     data = [vars(listing) for listing in exctracted_page.listings]
     try:
         cursor.executemany(query, data)
-        logger.info(f"Succesfully inserted listings of page number {exctracted_page.page_num} into db\n")
+        logger.info(f"Successfully inserted listings of page number {exctracted_page.page_num} into db\n")
     except Exception:
         logger.exception(f"\nError inserting data into db for page {exctracted_page.page_num}\n")
     connection.commit()
     cursor.close()
 
 
-def update_last_scrape_date():
-    with open("last_scrape_date.txt", "w") as f:
-        current_date = datetime.now().date().isoformat()
-        f.write(current_date)
-
-
-def set_up_logging():
+def set_up_logging(set_level=logging.DEBUG):
     """
     Configure logging to output to both the console and a log file.
 
     Logs are output with a timestamp, log level, and logger name.
     """
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(set_level)
 
     formatter = logging.Formatter(
         fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -247,7 +400,7 @@ def set_up_logging():
 
     # Create a console handler for output to stdout.
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
     # Create a file handler for logging to a file
@@ -258,10 +411,10 @@ def set_up_logging():
     # Add both handlers to the logger.
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
-    logger.info("\n\n\nNEW SCRAPING BATCH")
+    logger.info(f"\n\n\nStarted Scraping: {datetime.now()}")
 
 
-async def main():
+def main():
     """
     Main function to drive the scraping process.
 
@@ -269,41 +422,44 @@ async def main():
     then iterates through pages to scrape listings until the last page is reached.
     """
     logger = logging.getLogger(__name__)
-    page = 1
+    scrape_metadata = ScrapeMetadata()
+    page_num = 1
 
-    captcha_solver_extension_path = r"D:\Programming\Captcha Solver Extension\solver"
-    captcha_solver_pop_up_path = r"chrome-extension://hlifkpholllijblknnmbfagnkjneagid/popup/popup.html"
-
-    config = nd.Config()
-    config.add_extension(captcha_solver_extension_path)
-
-    browser = await nd.start(config=config)
-    await browser.sleep(2)
-    # temp_tab = await browser.get(captcha_solver_pop_up_path)
-    # await browser.sleep(2)
-
+    # Connect to the SQLite database to store the scraped listings.
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
 
-    # Loop through pages until all pages are scraped.
-    while True:
+    # Extract initial data such as build_id and maximum page count from the target site.
+    build_id, max_page = asyncio.run(exctract_initial_data(scrape_metadata))
 
-        exctracted_page = await exctract_page_data(page, browser)
+    # Loop through pages until the scraping process is complete.
+    while True:
+        # Wait for a random period between 1 and 120 seconds before each request,
+        wait_for = random.uniform(1, 8)
+        logger.debug(f"Sleeping for: {wait_for} seconds")
+        time.sleep(wait_for)
+
+        # Extract page data for the current page.
+        exctracted_page = exctract_page_data(page_num, build_id, max_page)
+
+        # Insert the scraped data into the database.
         insert_page_into_db(exctracted_page, connection)
 
         # Warn if the number of listings is not as expected.
-        if exctracted_page.is_last() and len(exctracted_page.listings) < 40:
-            logger.warning(f"Page number {page} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
+        if not exctracted_page.is_last() and len(exctracted_page.listings) < 40:
+            logger.warning(f"Page number {page_num} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
 
-        # Stop the loop if the current page is the last page.
-        if exctracted_page.max_page_available == exctracted_page.page_num:
-            logger.info("Finished scraping all pages")
-            update_last_scrape_date()
-            logger.info("Updated last_scrape_date file succesfully.")
+        # If the current page is the last one, log completion and break out of the loop.
+        if exctracted_page.is_last():
+            logger.info(f"Successfully finished scraping all {exctracted_page.page_num} pages")
+            scrape_metadata.last_successful_scrape_date = scrape_metadata.last_scrape_date
+            scrape_metadata.update()
+            logger.info("Successfully updated the metadata file .")
             break
 
-        page += 1
+        page_num += 1
 
 
 if __name__ == "__main__":
-    set_up_logging()  # Initialize logging for the application.
-    nd.loop().run_until_complete(main())  # Run the main asynchronous function.
+    set_up_logging()
+    main()
+    sys.exit(0)
