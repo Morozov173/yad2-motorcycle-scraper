@@ -3,6 +3,7 @@ import nodriver as nd
 import curl_cffi
 import sqlite3
 import json
+import csv
 import logging
 import sys
 import asyncio
@@ -78,7 +79,9 @@ class ScrapeMetadata:
     last_scrape_date: str = datetime.now().date().isoformat()
     last_successful_scrape_date: str = ""
     build_id: str = ""
-    json_path: str = field(default="scrape_metadata.json", repr=False)
+    amount_listings_added: int = 0
+    amount_listings_removed: int = 0
+    json_path: str = field(default="metadata.json", repr=False)
 
     def __post_init__(self):
         """
@@ -97,13 +100,17 @@ class ScrapeMetadata:
         # Set instance variables from the file
         self.last_successful_scrape_date = data["last_successful_scrape_date"]
         self.build_id = data["last_exctracted_build_id"]
+        self.amount_listings_added = data["amount_listings_added"]
+        self.amount_listings_removed = data["amount_listings_removed"]
 
     def update(self):
         """ Writes the current metadata back to the JSON file. """
         data = {
             "last_scrape_date": self.last_scrape_date,
             "last_successful_scrape_date": self.last_successful_scrape_date,
-            "last_exctracted_build_id": self.build_id
+            "last_exctracted_build_id": self.build_id,
+            "amount_listings_added": self.amount_listings_added,
+            "amount_listings_removed": self.amount_listings_removed
         }
         with open(self.json_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
@@ -130,7 +137,7 @@ def exctract_english_variant(listing: dict) -> str:
         return None
 
 
-async def exctract_initial_data(scrape_metadata: ScrapeMetadata) -> tuple[str, int]:
+async def exctract_initial_data(metadata: ScrapeMetadata) -> tuple[str, int]:
     """
     Launches a browser session to extract the build ID and the maximum number of pages from the target site.
 
@@ -147,7 +154,6 @@ async def exctract_initial_data(scrape_metadata: ScrapeMetadata) -> tuple[str, i
 
     logger = logging.getLogger(__name__)
     url = "https://www.yad2.co.il/vehicles/motorcycles"
-    logger.info(f"Trying to exctract build id")
 
     # Start the browser (headless by default or as configured)
     browser = await nd.start()
@@ -173,13 +179,13 @@ async def exctract_initial_data(scrape_metadata: ScrapeMetadata) -> tuple[str, i
 
     # If new build_id was detected
     build_id = data["buildId"]
-    if scrape_metadata.build_id != build_id:
-        logger.critical(f"New build id detected and updated. previus build id: {scrape_metadata.build_id} new build id: {build_id}")
-        scrape_metadata.build_id = build_id
+    if metadata.build_id != build_id:
+        logger.critical(f"New build id detected and updated. previus build id: {metadata.build_id} new build id: {build_id}")
+        metadata.build_id = build_id
+        metadata.update()
 
     max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
 
-    logger.info(f"Successfully finished exctracting initial data. Build ID: {build_id} Amount of pages to scrape: {max_page}\n")
     return build_id, max_page
 
 
@@ -239,7 +245,6 @@ def exctract_page_data(page_num: int, build_id: str, max_page: int) -> Exctraced
         ExctracedPage: An object containing the scraped page data.
     """
     logger = logging.getLogger(__name__)
-    logger.info(f"Started scraping page number {page_num}")
 
     # Construct the URL for the JSON data endpoint
     url = f"https://www.yad2.co.il/vehicles/_next/data/{build_id}/motorcycles.json?page={page_num}"
@@ -255,8 +260,8 @@ def exctract_page_data(page_num: int, build_id: str, max_page: int) -> Exctraced
     while attempts < max_attempts:
         try:
             response = curl_cffi.get(url=url, impersonate="chrome", headers=create_referer_header(page_num, max_page), proxies=proxies, timeout=60)
-        except:
-            logger.exception(f"Couldn't complete GET reuquest from target.")
+        except Exception as e:
+            logger.warning(f"Couldn't complete GET reuquest from target. Exception raised: {e}")
             logger.info("Trying again")
             attempts += 1
             time.sleep(5)
@@ -264,8 +269,8 @@ def exctract_page_data(page_num: int, build_id: str, max_page: int) -> Exctraced
 
         logger.debug(f"Recieved response. Status code is: {response.status_code}")
         if response.status_code != 200:
-            logger.warning("Didn't recieve 200 response from server; Sleeping for 5-10 minutes and trying again.")
-            time.sleep(random.uniform(300, 600))
+            logger.warning("Didn't recieve 200 response from server; Sleeping for 1-10 minutes and trying again.")
+            time.sleep(random.uniform(60, 600))
             attempts += 1
             continue
         elif not is_json(response.text):
@@ -322,7 +327,6 @@ def exctract_page_data(page_num: int, build_id: str, max_page: int) -> Exctraced
         listings=all_moto_listings
     )
 
-    logger.info(f"Successfully finished scraping page number {page_num}")
     return exctracted_page
 
 
@@ -336,6 +340,7 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
     """
     logger = logging.getLogger(__name__)
     cursor = connection.cursor()
+
     query = """
         INSERT INTO motorcycle_listings (
             listing_id,
@@ -379,9 +384,57 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
         cursor.executemany(query, data)
         logger.info(f"Successfully inserted listings of page number {exctracted_page.page_num} into db\n")
     except Exception:
+        connection.rollback()
         logger.exception(f"\nError inserting data into db for page {exctracted_page.page_num}\n")
+
     connection.commit()
     cursor.close()
+
+
+def update_inactive_listings(connection: sqlite3.Connection, metadata: ScrapeMetadata):
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Started updating listing status in database")
+
+    cursor = connection.cursor()
+    query = """
+    UPDATE motorcycle_listings
+    SET active = False
+    WHERE last_seen < :last_successful_scrape_date;
+    """
+    try:
+        cursor.execute(query, {"last_successful_scrape_date": metadata.last_successful_scrape_date})
+        metadata.amount_listings_removed = cursor.rowcount
+        logger.debug(f"Amount of listings set to Inactive: {metadata.amount_listings_removed}")
+    except:
+        connection.rollback()
+        logger.warning(f"Couldn't update listing status in database.")
+
+    connection.commit()
+    cursor.close()
+    logger.info(f"Successfuly updated listing status in database. Listings removed since last scrape: {metadata.amount_listings_removed}")
+
+
+def create_active_listings_csv(connection: sqlite3.Connection):
+    logger = logging.getLogger(__name__)
+    cursor = connection.cursor()
+    query = """
+    SELECT * FROM motorcycle_listings
+    WHERE active = True;
+    """
+    try:
+        active_listings = cursor.execute(query).fetchall()
+        column_names = [column_data[0] for column_data in cursor.description]
+    except Exception as e:
+        logger.error(f"Couldn't fetch active listings from database. Exception: {e}")
+        return
+
+    with open("active_listings.csv", "w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(column_names)
+        writer.writerows(active_listings)
+
+    cursor.close()
+    logger.info("Succesfully created active_listings csv file.")
 
 
 def set_up_logging(set_level=logging.DEBUG):
@@ -411,7 +464,6 @@ def set_up_logging(set_level=logging.DEBUG):
     # Add both handlers to the logger.
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
-    logger.info(f"\n\n\nStarted Scraping: {datetime.now()}")
 
 
 def main():
@@ -422,24 +474,35 @@ def main():
     then iterates through pages to scrape listings until the last page is reached.
     """
     logger = logging.getLogger(__name__)
-    scrape_metadata = ScrapeMetadata()
-    page_num = 1
+    logger.info(f"\n\n\n\n\nScrape started on: {datetime.now()}")
 
     # Connect to the SQLite database to store the scraped listings.
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
+    cursor = connection.cursor()
+
+    metadata = ScrapeMetadata()
+    page_num = 1
 
     # Extract initial data such as build_id and maximum page count from the target site.
-    build_id, max_page = asyncio.run(exctract_initial_data(scrape_metadata))
+    logger.info(f"Trying to exctract initial data (build id, amount of pages to scrape")
+    build_id, max_page = asyncio.run(exctract_initial_data(metadata))
+    logger.info(f"Successfully finished exctracting initial data. Build ID: {build_id} Amount of pages to scrape: {max_page}\n")
+
+    # fetch amount of listings in db at the start of the scrape
+    amount_of_listings,  = cursor.execute("SELECT COUNT(*) FROM motorcycle_listings;").fetchone()
+    logger.debug(f"Amount of listings at the start of the scrape: {amount_of_listings}")
 
     # Loop through pages until the scraping process is complete.
     while True:
         # Wait for a random period between 1 and 120 seconds before each request,
-        wait_for = random.uniform(1, 120)
+        wait_for = random.uniform(1, 60)
         logger.debug(f"Sleeping for: {wait_for} seconds")
         time.sleep(wait_for)
 
         # Extract page data for the current page.
+        logger.info(f"Started scraping page number {page_num}")
         exctracted_page = exctract_page_data(page_num, build_id, max_page)
+        logger.info(f"Successfully finished scraping page number {page_num}")
 
         # Insert the scraped data into the database.
         insert_page_into_db(exctracted_page, connection)
@@ -448,15 +511,33 @@ def main():
         if not exctracted_page.is_last() and len(exctracted_page.listings) < 40:
             logger.warning(f"Page number {page_num} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
 
-        # If the current page is the last one, log completion and break out of the loop.
+        # If the current page is the last one.
         if exctracted_page.is_last():
             logger.info(f"Successfully finished scraping all {exctracted_page.page_num} pages")
-            scrape_metadata.last_successful_scrape_date = scrape_metadata.last_scrape_date
-            scrape_metadata.update()
-            logger.info("Successfully updated the metadata file.")
             break
 
         page_num += 1
+
+    # Set listings that werent seen during theese scrape to ACTIVE = FALSE in database.
+    update_inactive_listings(connection, metadata)
+
+    # Update new metadata info and save to file
+    new_amount_of_listings, = cursor.execute("SELECT COUNT(*) FROM motorcycle_listings;").fetchone()
+    metadata.amount_listings_added = new_amount_of_listings - amount_of_listings
+    logger.debug(f"New amount of listings is: {new_amount_of_listings}. Meaning amount of new listings adedd is:{new_amount_of_listings - amount_of_listings}")
+
+    # Update last succesfull scrape date to today
+    metadata.last_successful_scrape_date = metadata.last_scrape_date
+
+    # Loadd all new metadata into the metadata json file
+    logger.info("Trying to dump new metadata info into JSON file.")
+    metadata.update()
+    logger.info("Successfully updated the metadata file.")
+
+    # Create active listings csv
+    create_active_listings_csv(connection)
+
+    connection.close()
 
 
 if __name__ == "__main__":
