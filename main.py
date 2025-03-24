@@ -34,6 +34,7 @@ class MotorcycleListing:
     color: str
     listed_price: int
     active: bool = True
+    _logger: logging.Logger = field(default=logging.getLogger(__name__), init=False, repr=False)
 
     def __post_init__(self):
         """
@@ -42,10 +43,26 @@ class MotorcycleListing:
         - If license_rank is None, it is determined based on engine displacement.
         - If model_name is None, it is set to "N/A".
         """
+        self.brand = "other" if self.brand == "אחר" else self.brand
+
+        # First identify license rank based on engine cc
+        if self.engine_displacement <= 125:
+            license_rank_based_on_cc = "A2"
+        elif self.engine_displacement <= 500:
+            license_rank_based_on_cc = "A1"
+        else:
+            license_rank_based_on_cc = "A"
+
+        # If no license rank insert based on cc
         if self.license_rank is None:
-            self.license_rank = 'A' if self.engine_displacement > 500 else 'A1'
+            self.license_rank = license_rank_based_on_cc
         else:
             self.license_rank = exctract_license_rank(self.license_rank)
+
+            # If mismatch between cc license rank and the one found sometimes mismatch is found cause the model is capped to fit A1 license rank
+            if license_rank_based_on_cc != self.license_rank and self.license_rank != 'A1':
+                self._logger.debug(f"Listings for {self.brand} {self.model_name} has mismatch between CC of {self.engine_displacement} and license rank {self.license_rank}")
+                self.license_rank = license_rank_based_on_cc
 
         if self.model_name is None:
             self.model_name = "N/A"
@@ -228,7 +245,58 @@ def is_json(s: str) -> bool:
     return True
 
 
-def exctract_page_data(page_num: int, build_id: str, max_page: int) -> ExctracedPage:
+def request_json(url: str, max_attempts: int = 10) -> dict:
+
+    logger = logging.getLogger(__name__)
+    proxies = {
+        "http": PROXY_IL,
+        "https": PROXY_IL
+    }
+
+    attempts = 0
+    # Try up to max_attempts times to get a valid response (HTTP 200)
+    while attempts < max_attempts:
+
+        # Try to performn GET request to the target url
+        try:
+            response = curl_cffi.get(url=url, impersonate="chrome", proxies=proxies, timeout=60)
+        except Exception as e:
+            logger.warning(f"Couldn't complete GET reuquest from target. Exception raised: {e}")
+            logger.info("Trying again")
+            attempts += 1
+            time.sleep(5)
+            continue
+
+        # If recieved response check that it's the desired one (200)
+        logger.debug(f"Recieved response. Status code is: {response.status_code}")
+        if response.status_code != 200:
+            logger.warning("Didn't recieve 200 response from server; Sleeping for 1-10 minutes and trying again.")
+            time.sleep(random.uniform(60, 600))
+            attempts += 1
+            continue
+
+        elif not is_json(response.text):
+            logger.warning("Recieved status code 200 but the data wasn't a JSON file.")
+            logger.info(f"First 100 characters of the data recieved:{response.text[0:100]}")
+            time.sleep(random.uniform(30, 60))
+            attempts += 1
+            continue
+
+        else:
+            logger.debug("Proper JSON file recieved")
+            break
+
+    # Exit if max attempts reached without success
+    if attempts == max_attempts:
+        logger.critical(f"Scraping failed at page {url}:  after {attempts} attempts.")
+        sys.exit(1)
+
+    json_dict = response.json()
+    response.close()
+    return json_dict
+
+
+def exctract_page_data(page_num: int, build_id: str) -> ExctracedPage:
     """
     Scrapes data from a given page number using the build id and extracts motorcycle listings.
 
@@ -249,48 +317,8 @@ def exctract_page_data(page_num: int, build_id: str, max_page: int) -> Exctraced
     # Construct the URL for the JSON data endpoint
     url = f"https://www.yad2.co.il/vehicles/_next/data/{build_id}/motorcycles.json?page={page_num}"
 
-    attempts = 0
-    max_attempts = 10
-    proxies = {
-        "http": PROXY_IL,
-        "https": PROXY_IL
-    }
-
-    # Try up to max_attempts times to get a valid response (HTTP 200)
-    while attempts < max_attempts:
-        try:
-            response = curl_cffi.get(url=url, impersonate="chrome", headers=create_referer_header(page_num, max_page), proxies=proxies, timeout=60)
-        except Exception as e:
-            logger.warning(f"Couldn't complete GET reuquest from target. Exception raised: {e}")
-            logger.info("Trying again")
-            attempts += 1
-            time.sleep(5)
-            continue
-
-        logger.debug(f"Recieved response. Status code is: {response.status_code}")
-        if response.status_code != 200:
-            logger.warning("Didn't recieve 200 response from server; Sleeping for 1-10 minutes and trying again.")
-            time.sleep(random.uniform(60, 600))
-            attempts += 1
-            continue
-        elif not is_json(response.text):
-            logger.warning("Recieved status code 200 but the data wasn't a JSON file.")
-            logger.info(f"First 100 characters of the data recieved:{response.text[0:100]}")
-            time.sleep(random.uniform(30, 60))
-            attempts += 1
-            continue
-        else:
-            logger.debug("Proper JSON file recieved")
-            break
-
-    # Exit if max attempts reached without success
-    if attempts == max_attempts:
-        logger.critical(f"Scraping failed at page: {page_num} after {attempts} attempts.")
-        sys.exit(1)
-
     # Parse JSON response data
-    data = response.json()
-    response.close()  # Close the response to free resources
+    data = request_json(url)
 
     # Combine commercial and private listings.
     commercial_listings = data["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["commercial"]
@@ -399,7 +427,7 @@ def update_inactive_listings(connection: sqlite3.Connection, metadata: ScrapeMet
     query = """
     UPDATE motorcycle_listings
     SET active = False
-    WHERE last_seen < :last_successful_scrape_date;
+    WHERE last_seen < :last_successful_scrape_date AND active = True;
     """
     try:
         cursor.execute(query, {"last_successful_scrape_date": metadata.last_successful_scrape_date})
@@ -474,7 +502,7 @@ def main():
     then iterates through pages to scrape listings until the last page is reached.
     """
     logger = logging.getLogger(__name__)
-    logger.info(f"\n\n\n\n\nScrape started on: {datetime.now()}")
+    logger.info(f"Scrape started on: {datetime.now()}")
 
     # Connect to the SQLite database to store the scraped listings.
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
@@ -501,7 +529,7 @@ def main():
 
         # Extract page data for the current page.
         logger.info(f"Started scraping page number {page_num}")
-        exctracted_page = exctract_page_data(page_num, build_id, max_page)
+        exctracted_page = exctract_page_data(page_num, build_id)
         logger.info(f"Successfully finished scraping page number {page_num}")
 
         # Insert the scraped data into the database.
@@ -530,7 +558,7 @@ def main():
     metadata.last_successful_scrape_date = metadata.last_scrape_date
 
     # Loadd all new metadata into the metadata json file
-    logger.info("Trying to dump new metadata info into JSON file.")
+    logger.debug("Trying to dump new metadata info into JSON file.")
     metadata.update()
     logger.info("Successfully updated the metadata file.")
 
