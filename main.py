@@ -1,12 +1,10 @@
-from bs4 import BeautifulSoup
-import nodriver as nd
+from camoufox.sync_api import Camoufox
 import curl_cffi
 import sqlite3
 import json
 import csv
 import logging
 import sys
-import asyncio
 import time
 import os
 import random
@@ -16,6 +14,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 PROXY_IL = os.getenv("PROXY_IL")
+PROXY_SERVER = os.getenv("PROXY_SERVER")
+PROXY_USERNAME_IL = os.getenv("PROXY_USERNAME")+"-country-il"
+PROXY_PASSWORD = os.getenv("PROXY_PASSWORD")
 
 
 @dataclass
@@ -154,7 +155,7 @@ def exctract_english_variant(listing: dict) -> str:
         return None
 
 
-async def exctract_initial_data(metadata: ScrapeMetadata) -> tuple[str, int]:
+def exctract_build_id(metadata: ScrapeMetadata) -> str:
     """
     Launches a browser session to extract the build ID and the maximum number of pages from the target site.
 
@@ -171,69 +172,33 @@ async def exctract_initial_data(metadata: ScrapeMetadata) -> tuple[str, int]:
 
     logger = logging.getLogger(__name__)
     url = "https://www.yad2.co.il/vehicles/motorcycles"
+    proxy = {
+        "server": PROXY_SERVER,
+        "username": PROXY_USERNAME_IL,
+        "password": PROXY_PASSWORD
+    }
 
-    # Start the browser (headless by default or as configured)
-    browser = await nd.start()
-    await browser.sleep(5)
-
-    # Open the URL in a new tab
-    tab = await browser.get(url)
-    await tab.sleep(5)
-
-    # Locate the script element that holds the JSON data
-    script_element = await tab.query_selector("#__NEXT_DATA__")
-    await tab.sleep(2)
-    json_text = await script_element.get_html()
-
-    # Stop the browser after extraction
-    browser.stop()
-
-    # Parse the HTML containing the JSON data using BeautifulSoup
-    soup = BeautifulSoup(json_text, "html.parser")
-    json_text = soup.find('script', id="__NEXT_DATA__", type="application/json").get_text(strip=True)
+    logger.info("Trying to exctract the Build ID")
+    # Start the browser (headless by default or as configured) and exctract the json element
+    with Camoufox(headless=True, geoip=True, proxy=proxy) as browser:
+        page = browser.new_page()
+        page.goto(url, timeout=60000)
+        time.sleep(2)
+        json_text = page.locator("script#__NEXT_DATA__").text_content()
+        time.sleep(2)
 
     data = json.loads(json_text)
 
-    # If new build_id was detected
     build_id = data["buildId"]
+    logger.info(f"Successfuly exctracted the Build ID: {build_id}")
+
+    # If new build_id was detected update metadata
     if metadata.build_id != build_id:
         logger.critical(f"New build id detected and updated. previus build id: {metadata.build_id} new build id: {build_id}")
         metadata.build_id = build_id
         metadata.update()
 
-    max_page = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["pagination"]["pages"]
-
-    return build_id, max_page
-
-
-def create_referer_header(page_num: int, max_page: int) -> dict[str:str]:
-    """
-    Generates a Referer header to simulate natural user navigation.
-
-    Although not strictly necessary for a successful request, adding a randomized
-    Referer header can help the requests appear more natural upon close inspection.
-
-    For page number 1, the referer page is randomly chosen from 1 to 27.
-    For other pages, it is chosen from a range of values near the current page, but not equal to it.
-
-    Args:
-        page_num (int): The current page number.
-        max_page (int): The maximum available page number.
-
-    Returns:
-        dict[str, str]: A dictionary containing the Referer header.
-    """
-    if page_num == 1:
-        # For page 1, choose any number between 1 and 27 (inclusive)
-        candidates = range(2, 28)
-    else:
-        # For other pages, select a range near the current page, ensuring values are within bounds and not equal to page_num.
-        lower = max(1, page_num-3)
-        upper = min(max_page, page_num+3)
-        candidates = [number for number in range(lower, upper+1) if number != page_num]
-
-    # Build and return the Referer header
-    return {"Referer": f"https://www.yad2.co.il/vehicles/motorcycles?page={random.choice(candidates)}"}
+    return build_id
 
 
 def is_json(s: str) -> bool:
@@ -512,9 +477,7 @@ def main():
     page_num = 1
 
     # Extract initial data such as build_id and maximum page count from the target site.
-    logger.info(f"Trying to exctract initial data (build id, amount of pages to scrape")
-    build_id, max_page = asyncio.run(exctract_initial_data(metadata))
-    logger.info(f"Successfully finished exctracting initial data. Build ID: {build_id} Amount of pages to scrape: {max_page}\n")
+    build_id = exctract_build_id(metadata)
 
     # fetch amount of listings in db at the start of the scrape
     amount_of_listings,  = cursor.execute("SELECT COUNT(*) FROM motorcycle_listings;").fetchone()
