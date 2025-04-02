@@ -13,10 +13,11 @@ from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
 load_dotenv()
-PROXY_IL = os.getenv("PROXY_IL")
+
 PROXY_SERVER = os.getenv("PROXY_SERVER")
-PROXY_USERNAME_IL = os.getenv("PROXY_USERNAME")+"-country-il"
+PROXY_USERNAME = os.getenv("PROXY_USERNAME")
 PROXY_PASSWORD = os.getenv("PROXY_PASSWORD")
+PROXY_LINK = os.getenv("PROXY_LINK")
 
 
 @dataclass
@@ -39,14 +40,14 @@ class MotorcycleListing:
 
     def __post_init__(self):
         """
-        Post-initialization to adjust default values.
+        Post-initialization method to adjust default values for fields.
 
-        - If license_rank is None, it is determined based on engine displacement.
-        - If model_name is None, it is set to "N/A".
+        If license_rank is not provided, it is determined based on engine displacement.
+        If model_name is not provided, it is set to "N/A".
         """
         self.brand = "other" if self.brand == "אחר" else self.brand
 
-        # First identify license rank based on engine cc
+        # Automatically determine license rank based on engine displacement (cc)
         if self.engine_displacement <= 125:
             license_rank_based_on_cc = "A2"
         elif self.engine_displacement <= 500:
@@ -54,17 +55,18 @@ class MotorcycleListing:
         else:
             license_rank_based_on_cc = "A"
 
-        # If no license rank insert based on cc
+        # If license_rank is not provided, set it based on engine displacement
         if self.license_rank is None:
             self.license_rank = license_rank_based_on_cc
         else:
             self.license_rank = exctract_license_rank(self.license_rank)
 
-            # If mismatch between cc license rank and the one found sometimes mismatch is found cause the model is capped to fit A1 license rank
+            # Handle mismatch between engine displacement and provided license rank
             if license_rank_based_on_cc != self.license_rank and self.license_rank != 'A1':
                 self._logger.debug(f"Listings for {self.brand} {self.model_name} has mismatch between CC of {self.engine_displacement} and license rank {self.license_rank}")
                 self.license_rank = license_rank_based_on_cc
 
+        # Default model_name to "N/A" if it is not provided
         if self.model_name is None:
             self.model_name = "N/A"
 
@@ -77,6 +79,7 @@ class ExctracedPage:
     listings: list[MotorcycleListing]
 
     def is_last(self) -> bool:
+        """Checks if the current page is the last page based on available pages."""
         if self.max_page_available == self.page_num:
             return True
         else:
@@ -86,13 +89,15 @@ class ExctracedPage:
 @dataclass
 class ScrapeMetadata:
     """
-    Manages scraping metadata by loading from and updating a JSON file.
+    Class to manage and update metadata related to the scraping process.
 
     Attributes:
-        last_scrape_date: Date when the scrape was initiated (ISO format).
+        last_scrape_date: Date when the scraping was initiated (in ISO format).
         last_successful_scrape_date: Date of the last successful scrape.
         build_id: Build identifier from the previous scrape.
-        json_path: File path for the metadata JSON (not shown in repr).
+        amount_listings_added: Number of new listings added during the scrape.
+        amount_listings_removed: Number of listings removed during the scrape.
+        json_path: File path for the metadata JSON file.
     """
     last_scrape_date: str = datetime.now().date().isoformat()
     last_successful_scrape_date: str = ""
@@ -102,27 +107,23 @@ class ScrapeMetadata:
     json_path: str = field(default="metadata.json", repr=False)
 
     def __post_init__(self):
-        """
-        Loads existing metadata from the JSON file, updates the last_scrape_date,
-        and initializes instance variables with loaded values.
-        """
+        """Load existing metadata from the JSON file and update the last scrape date."""
         with open(self.json_path, "r+") as json_file:
             data = json.load(json_file)
             # Update the last scrape date to the current value
             data["last_scrape_date"] = self.last_scrape_date
-            # Rewind file pointer and overwrite with updated data
             json_file.seek(0)
             json.dump(data, json_file, indent=4)
             json_file.truncate()
 
-        # Set instance variables from the file
+        # Set instance variables from the loaded file data
         self.last_successful_scrape_date = data["last_successful_scrape_date"]
         self.build_id = data["last_exctracted_build_id"]
         self.amount_listings_added = data["amount_listings_added"]
         self.amount_listings_removed = data["amount_listings_removed"]
 
     def update(self):
-        """ Writes the current metadata back to the JSON file. """
+        """ Write the current metadata back to the JSON file. """
         data = {
             "last_scrape_date": self.last_scrape_date,
             "last_successful_scrape_date": self.last_successful_scrape_date,
@@ -157,29 +158,18 @@ def exctract_english_variant(listing: dict) -> str:
 
 def exctract_build_id(metadata: ScrapeMetadata) -> str:
     """
-    Launches a browser session to extract the build ID and the maximum number of pages from the target site.
-
-    The function performs the following steps:
-      1. Opens the specified URL.
-      2. Waits for the page to load.
-      3. Retrieves the script element containing JSON data.
-      4. Parses the JSON to extract the build ID and pagination information.
-      5. Closes the browser session.
-
-    Returns:
-        tuple[str, int]: A tuple containing the build ID (str) and the maximum number of pages (int).
-    """
+    Extracts the build ID from the target website by launching a browser session."""
 
     logger = logging.getLogger(__name__)
     url = "https://www.yad2.co.il/vehicles/motorcycles"
     proxy = {
         "server": PROXY_SERVER,
-        "username": PROXY_USERNAME_IL,
+        "username": PROXY_USERNAME,
         "password": PROXY_PASSWORD
     }
 
     logger.info("Trying to exctract the Build ID")
-    # Start the browser (headless by default or as configured) and exctract the json element
+    # Launch browser and extract the build ID
     with Camoufox(headless=True, geoip=True, proxy=proxy) as browser:
         page = browser.new_page()
         page.goto(url, timeout=60000)
@@ -192,7 +182,7 @@ def exctract_build_id(metadata: ScrapeMetadata) -> str:
     build_id = data["buildId"]
     logger.info(f"Successfuly exctracted the Build ID: {build_id}")
 
-    # If new build_id was detected update metadata
+    # Update metadata if the build ID has changed
     if metadata.build_id != build_id:
         logger.critical(f"New build id detected and updated. previus build id: {metadata.build_id} new build id: {build_id}")
         metadata.build_id = build_id
@@ -211,11 +201,15 @@ def is_json(s: str) -> bool:
 
 
 def request_json(url: str, max_attempts: int = 10) -> dict:
+    """
+    Performs a GET request to the provided URL and attempts to retrieve a valid JSON response.
 
+    Retries up to max_attempts if a valid response is not received.
+    """
     logger = logging.getLogger(__name__)
     proxies = {
-        "http": PROXY_IL,
-        "https": PROXY_IL
+        "http": PROXY_LINK,
+        "https": PROXY_LINK
     }
 
     attempts = 0
@@ -263,19 +257,8 @@ def request_json(url: str, max_attempts: int = 10) -> dict:
 
 def exctract_page_data(page_num: int, build_id: str) -> ExctracedPage:
     """
-    Scrapes data from a given page number using the build id and extracts motorcycle listings.
-
-    The function makes repeated GET requests (up to a maximum number of attempts) to retrieve JSON data.
-    It logs the status code and a snippet of the response, waits between attempts if the request fails,
-    and ultimately parses the response JSON to extract both commercial and private listings.
-
-    Args:
-        page_num (int): The page number to scrape.
-        build_id (str): The build ID required to construct the URL.
-        max_page (int): The maximum number of pages available (used for header generation).
-
-    Returns:
-        ExctracedPage: An object containing the scraped page data.
+    Scrapes data from a given page number using the provided build ID.
+    Returns an object containing the listings from that page.
     """
     logger = logging.getLogger(__name__)
 
@@ -298,7 +281,7 @@ def exctract_page_data(page_num: int, build_id: str) -> ExctracedPage:
             creation_date=str(datetime.fromisoformat(listing['dates']['createdAt']).date()),
             location_of_seller=listing['address']['area']['textEng'],
             brand=exctract_english_variant(listing['manufacturer']),
-            model_name=exctract_english_variant(listing['model']),
+            model_name=exctract_english_variant(listing.get('model')),
             model_year=listing['vehicleDates']['yearOfProduction'],
             engine_displacement=listing['engineVolume'],
             license_rank=listing['license'].get('text'),
@@ -326,10 +309,7 @@ def exctract_page_data(page_num: int, build_id: str) -> ExctracedPage:
 def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Connection):
     """
     Insert the listings from an extracted page into the SQLite database.
-
-    This function uses an UPSERT query:
-      - Inserts a new row if the listing does not exist.
-      - Updates the last_seen field if the listing_id already exists.
+    Uses UPSERT to insert new rows or update the `last_seen` column for existing rows.
     """
     logger = logging.getLogger(__name__)
     cursor = connection.cursor()
@@ -385,6 +365,7 @@ def insert_page_into_db(exctracted_page: ExctracedPage, connection: sqlite3.Conn
 
 
 def update_inactive_listings(connection: sqlite3.Connection, metadata: ScrapeMetadata):
+    """Updates listings that were not seen during the scrape by setting their status to inactive."""
     logger = logging.getLogger(__name__)
     logger.debug(f"Started updating listing status in database")
 
@@ -408,11 +389,39 @@ def update_inactive_listings(connection: sqlite3.Connection, metadata: ScrapeMet
 
 
 def create_active_listings_csv(connection: sqlite3.Connection):
+    """
+    Creates a CSV file containing the active listings from the database.
+    The file includes a model rank based on the number of listings per model.
+    """
     logger = logging.getLogger(__name__)
     cursor = connection.cursor()
-    query = """
-    SELECT * FROM motorcycle_listings
-    WHERE active = True;
+    query = """   
+        WITH motorcycle_listings_formatted AS (
+            SELECT 
+                listing_id,
+                creation_date,
+                REPLACE(location_of_seller, '_', ' ') AS location_of_seller,
+                REPLACE(UPPER(SUBSTR(brand, 1, 1)) || SUBSTR(brand, 2), '_', ' ') AS brand,
+                model_name,
+                model_year,
+                engine_displacement,
+                license_rank,
+                kilometrage,
+                amount_of_owners,
+                color,
+                listed_price,
+                active,
+                last_seen,
+                UPPER(SUBSTR(brand, 1, 1)) || SUBSTR(brand, 2) || ' ' || model_name AS brand_model_name,
+                COUNT(*) OVER(PARTITION BY brand, model_name) AS model_count
+            FROM motorcycle_listings
+            WHERE active = True
+        )
+
+        SELECT 
+            *,
+            DENSE_RANK() OVER(ORDER BY model_count DESC) AS model_rank
+        FROM motorcycle_listings_formatted;
     """
     try:
         active_listings = cursor.execute(query).fetchall()
@@ -431,11 +440,7 @@ def create_active_listings_csv(connection: sqlite3.Connection):
 
 
 def set_up_logging(set_level=logging.DEBUG):
-    """
-    Configure logging to output to both the console and a log file.
-
-    Logs are output with a timestamp, log level, and logger name.
-    """
+    """Configure logging to output logs to both the console and a log file."""
     logger = logging.getLogger(__name__)
     logger.setLevel(set_level)
 
@@ -444,12 +449,12 @@ def set_up_logging(set_level=logging.DEBUG):
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    # Create a console handler for output to stdout.
+    # Console handler for output to stdout.
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
-    # Create a file handler for logging to a file
+    # File handler for logging to a file
     file_handler = logging.FileHandler("scraper.log", mode="a", encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
@@ -461,58 +466,55 @@ def set_up_logging(set_level=logging.DEBUG):
 
 def main():
     """
-    Main function to drive the scraping process.
-
-    This function initializes the browser and database connection,
-    then iterates through pages to scrape listings until the last page is reached.
+    Main scraping function that initiates the scraping process,
+    processes data, and stores results in the database.
     """
     logger = logging.getLogger(__name__)
     logger.info(f"Scrape started on: {datetime.now()}")
 
-    # Connect to the SQLite database to store the scraped listings.
+    # Connect to the SQLite database to store listings
     connection = sqlite3.connect("yad2_motorcycles_listings.db")
     cursor = connection.cursor()
 
     metadata = ScrapeMetadata()
     page_num = 1
 
-    # Extract initial data such as build_id and maximum page count from the target site.
     build_id = exctract_build_id(metadata)
 
-    # fetch amount of listings in db at the start of the scrape
+    # Fetch initial listings count from the database
     amount_of_listings,  = cursor.execute("SELECT COUNT(*) FROM motorcycle_listings;").fetchone()
     logger.debug(f"Amount of listings at the start of the scrape: {amount_of_listings}")
 
-    # Loop through pages until the scraping process is complete.
+    # Scrape data across pages
     while True:
-        # Wait for a random period between 1 and 120 seconds before each request,
+        # Wait for a random period between requests to avoid rate limiting
         wait_for = random.uniform(1, 60)
         logger.debug(f"Sleeping for: {wait_for} seconds")
         time.sleep(wait_for)
 
-        # Extract page data for the current page.
+        # Scrape data from the current page
         logger.info(f"Started scraping page number {page_num}")
         exctracted_page = exctract_page_data(page_num, build_id)
         logger.info(f"Successfully finished scraping page number {page_num}")
 
-        # Insert the scraped data into the database.
+        # Insert the scraped data into the database
         insert_page_into_db(exctracted_page, connection)
 
         # Warn if the number of listings is not as expected.
         if not exctracted_page.is_last() and len(exctracted_page.listings) < 40:
             logger.warning(f"Page number {page_num} or {exctracted_page.page_num} contained less then 40 entries but {len(exctracted_page.listings)}")
 
-        # If the current page is the last one.
+         # Check if this is the last page.
         if exctracted_page.is_last():
             logger.info(f"Successfully finished scraping all {exctracted_page.page_num} pages")
             break
 
         page_num += 1
 
-    # Set listings that werent seen during theese scrape to ACTIVE = FALSE in database.
+    # Mark inactive listings in the database
     update_inactive_listings(connection, metadata)
 
-    # Update new metadata info and save to file
+    # Update metadata after scraping
     new_amount_of_listings, = cursor.execute("SELECT COUNT(*) FROM motorcycle_listings;").fetchone()
     metadata.amount_listings_added = new_amount_of_listings - amount_of_listings
     logger.debug(f"New amount of listings is: {new_amount_of_listings}. Meaning amount of new listings adedd is:{new_amount_of_listings - amount_of_listings}")
@@ -525,7 +527,7 @@ def main():
     metadata.update()
     logger.info("Successfully updated the metadata file.")
 
-    # Create active listings csv
+    # Create the CSV of active listings
     create_active_listings_csv(connection)
 
     connection.close()
