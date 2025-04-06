@@ -173,9 +173,9 @@ def exctract_build_id(metadata: ScrapeMetadata) -> str:
     with Camoufox(headless=True, geoip=True, proxy=proxy) as browser:
         page = browser.new_page()
         page.goto(url, timeout=60000)
-        time.sleep(2)
-        json_text = page.locator("script#__NEXT_DATA__").text_content()
-        time.sleep(2)
+        time.sleep(5)
+        json_text = page.locator("script#__NEXT_DATA__").text_content(timeout=60000)
+        time.sleep(5)
 
     data = json.loads(json_text)
 
