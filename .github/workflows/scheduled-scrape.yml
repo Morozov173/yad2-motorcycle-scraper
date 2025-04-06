@@ -1,4 +1,4 @@
-name: Run Scraper with UltraViolet Every Saturday
+name: Scheduled Scrape RUns
 
 on:
   schedule:
@@ -14,30 +14,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out repository
       - name: Check out code
         uses: actions/checkout@v4
 
-      # 2. Install uv
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         
-      # 3. Set up Python
       - name: Set-Up Python
         run: uv python install 
 
-      - name: Create .env from GitHub Secrets
+      - name: Create .env
         run: |
           echo "PROXY_USERNAME=${{ secrets.PROXY_USERNAME }}" >> .env
           echo "PROXY_PASSWORD=${{ secrets.PROXY_PASSWORD }}" >> .env
           echo "PROXY_SERVER=${{ secrets.PROXY_SERVER }}" >> .env
           echo 'PROXY_LINK=http://${PROXY_USERNAME}:${PROXY_PASSWORD}@${PROXY_SERVER}' >> .env
 
-      # 4. Run the scraper script via uv
       - name: Run scraper
         run: uv run main.py 
 
-      # 5. Commit and push any changes
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
