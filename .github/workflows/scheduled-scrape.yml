@@ -1,0 +1,51 @@
+name: Run Scraper with UltraViolet Every Saturday
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every Saturday
+    - cron: '0 12 * * 6' # 9 AM IL time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out repository
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Install UltraViolet
+      #    (Adjust this if you install via different method)
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        
+      # 3. Install Python
+      - name: Set-Up Python
+        run: uv python install 
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Debug List files
+        run: |
+          pwd
+          ls -R
+      
+      # 4. Run the scraper script via uv
+      #    If your script is named main.py in the repo root:
+      - name: Run scraper with UltraViolet
+        run: uv run main.py 
+
+      # 5. Commit and push any changes
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          # Only commit if there are changes
+          git diff-index --quiet HEAD || git commit -m "Auto-update from scraper"
+          git push
