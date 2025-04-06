@@ -18,26 +18,23 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # 2. Install UltraViolet
-      #    (Adjust this if you install via different method)
+      # 2. Install uv
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         
-      # 3. Install Python
+      # 3. Set up Python
       - name: Set-Up Python
         run: uv python install 
 
-      - name: Install the project
-        run: uv sync --all-extras --dev
-
-      - name: Debug List files
+      - name: Create .env from GitHub Secrets
         run: |
-          pwd
-          ls -R
-      
+          echo "PROXY_USERNAME=${{ secrets.PROXY_USERNAME }}" >> .env
+          echo "PROXY_PASSWORD=${{ secrets.PROXY_PASSWORD }}" >> .env
+          echo "PROXY_SERVER=${{ secrets.PROXY_SERVER }}" >> .env
+          echo 'PROXY_LINK=http://${PROXY_USERNAME}:${PROXY_PASSWORD}@${PROXY_SERVER}' >> .env
+
       # 4. Run the scraper script via uv
-      #    If your script is named main.py in the repo root:
-      - name: Run scraper with UltraViolet
+      - name: Run scraper
         run: uv run main.py 
 
       # 5. Commit and push any changes
